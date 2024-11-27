@@ -1,0 +1,147 @@
+.diagram-container {
+    padding: 2rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    position: relative;
+}
+
+.flow-diagram {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    align-items: center;
+    justify-items: center;
+}
+
+.diagram-node {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    width: 180px;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.diagram-node:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cip-node {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+}
+
+.metric-node {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
+
+.risk-node {
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+}
+
+.arrow {
+    position: absolute;
+    width: 40px;
+    height: 2px;
+    background: #64748b;
+    transition: all 0.3s ease;
+}
+
+.arrow::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #64748b;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.arrow-right {
+    transform: translateX(100%);
+    right: -40px;
+    top: 50%;
+}
+
+.diagram-tooltip {
+    visibility: hidden;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.diagram-node:hover .diagram-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+#node-details-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 20;
+}
+
+#node-details-panel h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+#node-details-panel ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+#node-details-panel li {
+    margin-bottom: 0.25rem;
+    color: #4b5563;
+}
+
+.metric-details {
+    background: #f3f4f6;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.impact-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.impact-high { background-color: #ef4444; }
+.impact-medium { background-color: #f59e0b; }
+.impact-low { background-color: #10b981; }

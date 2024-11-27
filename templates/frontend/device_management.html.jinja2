@@ -1,0 +1,245 @@
+{% extends 'frontend/base.html.jinja2' %}
+
+{% block head %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css') }}">
+{% endblock %}
+
+{% block title %}Device Management Page{% endblock %}
+
+{% block content %}
+<!-- Include styles -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/device_management.css') }}">
+
+<style>
+    /* Custom styles */
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        display: none;
+        z-index: 1000;
+    }
+    #error-container {
+        background-color: #f44336;
+        color: white;
+    }
+    #success-container {
+        background-color: #4CAF50;
+        color: white;
+    }
+    details[open] summary::after {
+        content: "▲";
+        float: right;
+    }
+    details summary::after {
+        content: "▼";
+        float: right;
+    }
+    .layer-toggle.active {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .connection-type-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    .connection-line {
+        display: inline-block;
+        width: 20px;
+        height: 2px;
+        margin-right: 8px;
+    }
+    .ethernet-line { background-color: #4CAF50; }
+    .fiber-line { background-color: #2196F3; }
+    .vpn-line {
+        background-image: linear-gradient(to right, #FF9800 50%, transparent 50%);
+        background-size: 10px 100%;
+    }
+    .wifi-line {
+        background-image: linear-gradient(to right, #9C27B0 25%, transparent 25%);
+        background-size: 4px 100%;
+    }
+</style>
+
+<!-- Notification Containers -->
+<div id="error-container" class="notification"></div>
+<div id="success-container" class="notification"></div>
+
+<div class="container mx-auto p-4 mt-16">
+    <!-- Network Visualization Section -->
+    <div class="bg-white p-4 rounded shadow mb-4">
+        <!-- Layer Toggles - Moved above canvas -->
+        <div class="flex justify-center mb-4">
+            <button class="layer-toggle mx-2 px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition-colors active" data-layer="physical">Physical Layer</button>
+            <button class="layer-toggle mx-2 px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition-colors" data-layer="logical">Logical Layer</button>
+            <button class="layer-toggle mx-2 px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition-colors" data-layer="application">Application Layer</button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-4">
+            <!-- Left Column: Canvas -->
+            <div class="col-span-3">
+                <!-- Canvas for network visualization -->
+                <canvas id="networkCanvas" width="800" height="400" class="border rounded"></canvas>
+            </div>
+
+            <!-- Right Column: Controls and Panels -->
+            <div class="col-span-1 space-y-4">
+                <!-- Device Type Selector and Add Device Button -->
+                <div class="shadow p-4">
+                    <h3 class="text-lg font-semibold mb-2">Add New Device</h3>
+                    <select id="deviceType" class="w-full rounded border px-2 mb-2">
+                        <option value="" disabled selected>Select Device Type</option>
+                        <option value="router">Router</option>
+                        <option value="switch">Switch</option>
+                        <option value="server">Server</option>
+                        <option value="workstation">Workstation</option>
+                        <option value="client">Client</option>
+                    </select>
+                    <button id="addDevice" class="bg-blue-500 text-white px-4 py-2 rounded w-full hover:bg-blue-600 transition-colors">Add Device</button>
+                </div>
+
+                <!-- Connection Controls -->
+                <div class="shadow p-4">
+                    <h3 class="text-lg font-semibold mb-2">Create Connection</h3>
+                    <select id="sourceDevice" class="w-full rounded border px-2 mb-2">
+                        <option value="" disabled selected>Select Source Device</option>
+                    </select>
+                    <select id="targetDevice" class="w-full rounded border px-2 mb-2">
+                        <option value="" disabled selected>Select Target Device</option>
+                    </select>
+                    <select id="connectionType" class="w-full rounded border px-2 mb-2">
+                        <option value="" disabled selected>Select Connection Type</option>
+                        <option value="ethernet">Ethernet</option>
+                        <option value="fiber">Fiber</option>
+                        <option value="vpn">VPN</option>
+                        <option value="wifi">Wi-Fi</option>
+                    </select>
+                    <!-- Connection Type Legend -->
+                    <div class="text-xs text-gray-600 mb-2 p-2 bg-gray-50 rounded">
+                        <div class="connection-type-indicator">
+                            <span class="connection-line ethernet-line"></span>
+                            <span>Ethernet - Solid green</span>
+                        </div>
+                        <div class="connection-type-indicator">
+                            <span class="connection-line fiber-line"></span>
+                            <span>Fiber - Solid blue</span>
+                        </div>
+                        <div class="connection-type-indicator">
+                            <span class="connection-line vpn-line"></span>
+                            <span>VPN - Dashed orange</span>
+                        </div>
+                        <div class="connection-type-indicator">
+                            <span class="connection-line wifi-line"></span>
+                            <span>Wi-Fi - Dotted purple</span>
+                        </div>
+                    </div>
+                    <input type="number" id="bandwidth" placeholder="Bandwidth (Mbps)" class="w-full rounded border px-2 mb-2">
+                    <button id="addConnection" class="bg-green-500 text-white px-4 py-2 rounded w-full hover:bg-green-600 transition-colors">Connect Devices</button>
+                </div>
+
+                <!-- Device Configuration Panel -->
+                <details class="shadow" id="deviceConfigPanel">
+                    <summary class="text-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors p-2">
+                        Device Configuration
+                    </summary>
+                    <div class="p-4 space-y-2">
+                        <input type="text" id="deviceName" placeholder="Device Name" class="w-full rounded border px-2">
+                        <input type="text" id="ipAddress" placeholder="IP Address" class="w-full rounded border px-2">
+                        <input type="text" id="subnetMask" placeholder="Subnet Mask" class="w-full rounded border px-2">
+                        <input type="text" id="macAddress" placeholder="MAC Address" class="w-full rounded border px-2">
+                        <input type="text" id="gateway" placeholder="Gateway" class="w-full rounded border px-2">
+                        <input type="text" id="dnsServer" placeholder="DNS Server" class="w-full rounded border px-2">
+                        <button id="updateDeviceConfig" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors w-full">Update Configuration</button>
+                    </div>
+                </details>
+
+                <!-- Performance Metrics Panel -->
+                <details class="shadow" id="performanceMetricsPanel">
+                    <summary class="text-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors p-2">
+                        Performance Metrics
+                    </summary>
+                    <div class="p-4 space-y-4">
+                        <div>
+                            <label class="block font-semibold">CPU Usage</label>
+                            <div class="w-full bg-gray-200 h-4 rounded">
+                                <div id="cpuMetric" class="bg-blue-500 h-4 rounded"></div>
+                            </div>
+                            <span id="cpuValue" class="text-sm text-gray-700">0%</span>
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Memory Usage</label>
+                            <div class="w-full bg-gray-200 h-4 rounded">
+                                <div id="memoryMetric" class="bg-green-500 h-4 rounded"></div>
+                            </div>
+                            <span id="memoryValue" class="text-sm text-gray-700">0%</span>
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Disk Usage</label>
+                            <div class="w-full bg-gray-200 h-4 rounded">
+                                <div id="diskMetric" class="bg-yellow-500 h-4 rounded"></div>
+                            </div>
+                            <span id="diskValue" class="text-sm text-gray-700">0%</span>
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Vulnerability Score</label>
+                            <div class="w-full bg-gray-200 h-4 rounded">
+                                <div id="vulnerabilityMetric" class="bg-red-500 h-4 rounded"></div>
+                            </div>
+                            <span id="vulnerabilityValue" class="text-sm text-gray-700">0%</span>
+                        </div>
+                        <button id="updateMetrics" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors w-full">Update Metrics</button>
+                    </div>
+                </details>
+
+                <!-- Save/Load Configuration Buttons -->
+                <div class="shadow p-4">
+                    <h3 class="text-lg font-semibold mb-2">Configuration</h3>
+                    <button id="save" class="bg-indigo-500 text-white px-4 py-2 rounded w-full hover:bg-indigo-600 transition-colors mb-2">Save Configuration</button>
+                    <button id="load" class="bg-indigo-500 text-white px-4 py-2 rounded w-full hover:bg-indigo-600 transition-colors">Load Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device List and Connections List - Converted to dropdowns -->
+    <div class="grid grid-cols-2 gap-4">
+        <!-- Device List Dropdown -->
+        <details class="bg-white p-4 rounded shadow">
+            <summary class="text-lg font-semibold mb-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                Devices
+            </summary>
+            <ul id="deviceList" class="list-disc pl-5 mt-2">
+                <!-- Device items will be populated dynamically -->
+            </ul>
+        </details>
+
+        <!-- Connections List Dropdown -->
+        <details class="bg-white p-4 rounded shadow">
+            <summary class="text-lg font-semibold mb-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                Connections
+            </summary>
+            <ul id="connectionsList" class="list-disc pl-5 mt-2">
+                <!-- Connection items will be populated dynamically -->
+            </ul>
+        </details>
+    </div>
+</div>
+
+<!-- Include JavaScript Modules -->
+<script type="module" src="{{ url_for('static', filename='js/dm_state.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/device_management/services/dm_api.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/device_management/dm_canvas.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/device_management/dm_device.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/device_management/dm_connection.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/device_management/dm_events.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/device_management/dm_ui.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/device_management.js') }}"></script>
+
+{% endblock %}

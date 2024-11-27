@@ -1,0 +1,49 @@
+<nav class="bg-dark-blue text-white fixed w-full z-5 top-0 shadow-lg p-0">
+    <div class="container flex items-center justify-start p-1 w-full ml-10"> <!-- Increased left margin to move the navbar to the right -->
+        <div class="flex items-start mr-12"> <!-- Added larger margin-right to create more space between the logo and the links -->
+            <a href="{{ url_for('home') }}" class="flex items-start hover:opacity-90 transition-opacity duration-200 m-0 p-0">
+                <img src="{{ url_for('static', filename='CIPlogo.png') }}" alt="Aegis Analytica Logo" class="logo-size mr-2">
+                <span class="font-semibold text-lg tracking-tight m-0 p-0 leading-none">Aegis Analytica</span>
+            </a>
+        </div>
+        <div class="flex items-start space-x-12"> <!-- Increased spacing between links to improve readability and prevent overlap -->
+            <a href="{{ url_for('home') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'home' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Home</a>
+            <a href="{{ url_for('cip_control') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_control' %}text-blue-300 border-b-2 border-blue-300{% endif %}">CIP Controls</a>
+            <a href="{{ url_for('cip_impact') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_impact' %}text-blue-300 border-b-2 border-blue-300{% endif %}">CIP Impact</a>
+            <a href="{{ url_for('cip_val') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_val' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Impact of CIP Values</a>
+            <a href="{{ url_for('control_panel') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'control_panel' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Control Panel</a>
+            <a href="{{ url_for('device_management') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'device_management' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Device Management</a>
+            <a href="{{ url_for('help_page') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'help' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Help</a>
+        </div>
+    </div>
+</nav>
+
+<style>
+.logo-size {
+    height: 40px;  /* Smaller logo size to improve alignment */
+    width: auto;
+    max-height: 40px;
+}
+
+nav {
+    margin: 0;  /* Remove default margins */
+    padding: 0.5rem 0;  /* Minimal padding for the nav container */
+}
+
+nav .container {
+    padding: 0.5rem;  /* Ensure container padding is small to reduce height */
+    width: 100%;  /* Make sure container takes full width */
+    max-width: 100%;  /* Remove any fixed maximum width */
+    justify-content: flex-start;  /* Align everything to the left */
+}
+
+nav a {
+    margin: 0;  /* Remove any default margin from links */
+    padding: 0;  /* Remove any extra padding from links */
+    line-height: 1;  /* Adjust line-height to prevent extra space */
+}
+
+nav .flex {
+    align-items: flex-start;  /* Align items to the top and start */
+}
+</style>
