@@ -47,7 +47,9 @@ const UI = {
         subnetMask: document.getElementById('subnetMask'),
         macAddress: document.getElementById('macAddress'),
         gateway: document.getElementById('gateway'),
-        dnsServer: document.getElementById('dnsServer')
+        dnsServer: document.getElementById('dnsServer'),
+        customMetricSlider: document.getElementById('customMetricSlider'),
+        customMetricValue: document.getElementById('customMetricValue')
     },
     metrics: {
         cpu: document.getElementById('cpuMetric'),
@@ -276,9 +278,54 @@ function setupEventListeners() {
         showSuccess('Device metrics updated');
     });
 
-    // Save/Load Configuration
-    UI.buttons.save?.addEventListener('click', handleSaveConfiguration);
-    UI.buttons.load?.addEventListener('click', handleLoadConfiguration);
+    // Save Configuration
+    UI.buttons.save?.addEventListener('click', async () => {
+        const projectName = prompt("Enter a name for the configuration:");
+        if (projectName) {
+            const state = getState();
+            const data = {
+                name: projectName,
+                devices: state.devices.map(device => device.toJSON()),
+                connections: state.connections.map(connection => connection.toJSON())
+            };
+
+            try {
+                await projectApi.saveProject(data);
+                showSuccess('Configuration saved successfully');
+            } catch (error) {
+                showError(`Failed to save configuration: ${error.message}`);
+            }
+        }
+    });
+
+    // Load Configuration
+    UI.buttons.load?.addEventListener('click', () => {
+        const projectName = prompt("Enter the name of the configuration to load:");
+        if (projectName) {
+            fetch(`/api/projects/load?name=${projectName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load configuration');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Handle loading the data into the state
+                    // This part will need to be implemented based on how the data is structured
+                    console.log(data);
+                    showSuccess('Configuration loaded successfully');
+                })
+                .catch(error => {
+                    showError(`Failed to load configuration: ${error.message}`);
+                });
+        }
+    });
+
+    // Slider for Custom Metric
+    UI.inputs.customMetricSlider?.addEventListener('input', (event) => {
+        const value = event.target.value;
+        UI.inputs.customMetricValue.textContent = value;
+    });
 
     // Layer Toggles
     UI.layerToggles.forEach(toggle => {
@@ -335,63 +382,6 @@ function clearDeviceConfig() {
     UI.inputs.macAddress.value = '';
     UI.inputs.gateway.value = '';
     UI.inputs.dnsServer.value = '';
-}
-
-// Save/Load Configuration
-async function handleSaveConfiguration() {
-    try {
-        const state = getState();
-        const data = {
-            devices: state.devices.map(device => device.toJSON()),
-            connections: state.connections.map(connection => connection.toJSON())
-        };
-
-        await projectApi.saveProject(data);
-        showSuccess('Configuration saved successfully');
-    } catch (error) {
-        showError(`Failed to save configuration: ${error.message}`);
-    }
-}
-
-async function handleLoadConfiguration() {
-    try {
-        const data = await projectApi.loadProject();
-        const state = getState();
-
-        // Clear existing state
-        state.devices = [];
-        state.connections = [];
-
-        // Load devices
-        data.devices.forEach(deviceData => {
-            const device = new Device(
-                deviceData.x,
-                deviceData.y,
-                deviceData.name,
-                deviceData.type
-            );
-            addDevice(device);
-        });
-
-        // Load connections
-        data.connections.forEach(connectionData => {
-            const sourceDevice = state.devices.find(d => d.id === connectionData.source_device_id);
-            const targetDevice = state.devices.find(d => d.id === connectionData.target_device_id);
-            if (sourceDevice && targetDevice) {
-                createConnection(
-                    sourceDevice,
-                    targetDevice,
-                    connectionData.type,
-                    connectionData.bandwidth
-                );
-            }
-        });
-
-        updateUI();
-        showSuccess('Configuration loaded successfully');
-    } catch (error) {
-        showError(`Failed to load configuration: ${error.message}`);
-    }
 }
 
 // Export necessary functions

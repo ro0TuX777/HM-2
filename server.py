@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, render_template, request, jsonify
 import os
 import sqlite3
-
+import json
 
 # Import Blueprints
 from routes.device_management_DBroutes import device_management_db_bp
@@ -15,7 +15,7 @@ app = Flask(__name__,
 app.register_blueprint(device_management_db_bp, url_prefix='/device_management_db')
 
 DATABASE = os.path.join(os.path.dirname(__file__), 'app.db')
-
+EXPORTS_DIR = os.path.join(os.path.dirname(__file__), 'json_exports')
 
 def init_db():
     with sqlite3.connect(DATABASE) as conn:
@@ -169,8 +169,33 @@ def get_devices():
             }
         } for d in devices])
 
+# Save Configuration API Route
+@app.route('/api/projects', methods=['POST'])
+def save_project():
+    data = request.json
+    project_name = data.get('name', 'default_project')
+    file_path = os.path.join(EXPORTS_DIR, f"{project_name}.json")
 
-# Connection Management API Routes
+    # Save the project data to a JSON file
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file)
+
+    return jsonify({'message': 'Project saved successfully', 'file': file_path})
+
+# Load Configuration API Route
+@app.route('/api/projects/load', methods=['GET'])
+def load_project():
+    project_name = request.args.get('name')
+    file_path = os.path.join(EXPORTS_DIR, f"{project_name}.json")
+
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'File not found'}), 404
+
+    with open(file_path, 'r') as json_file:
+        data = json.load(json_file)
+
+    return jsonify(data)
+
 @app.route('/api/connections', methods=['GET'])
 def get_connections():
     with sqlite3.connect(DATABASE) as conn:
