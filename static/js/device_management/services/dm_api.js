@@ -155,25 +155,46 @@ async function apiCall(endpoint, options = {}, retries = 2) {
 // Device API Calls
 export const deviceApi = {
     getAllDevices: () => apiCall('/devices'),
-
+ 
     addDevice: (deviceData) => {
         debug('Adding device:', deviceData);
         validators.device(deviceData);
         return apiCall('/devices', {
             method: 'POST',
             body: JSON.stringify(deviceData)
+
+    
         });
     },
-
+ 
     updateDevice: (deviceId, deviceData) => {
         debug('Updating device:', deviceId, deviceData);
         if (!deviceId) throw new Error('Device ID is required');
         return apiCall(`/devices/${deviceId}`, {
-            method: 'PUT',
+            method: 'PUT', 
             body: JSON.stringify(deviceData)
         });
     },
-
+ 
+    updateMetrics: async (deviceId, metrics) => {
+        debug('Attempting to update metrics:', deviceId, metrics);
+        try {
+            const response = await apiCall(`/device_metrics/${deviceId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(metrics)
+            });
+            debug('Metrics update response:', response);
+            return response;
+        } catch (error) {
+            console.error('Failed to update metrics:', error);
+            throw error;
+        }
+    },
+ 
     updateDevicePosition: (deviceId, x, y) => {
         debug('Updating device position:', deviceId, x, y);
         if (!deviceId) throw new Error('Device ID is required');
@@ -185,7 +206,7 @@ export const deviceApi = {
             body: JSON.stringify({ x, y })
         });
     },
-
+ 
     removeDevice: (deviceId) => {
         debug('Removing device:', deviceId);
         if (!deviceId) throw new Error('Device ID is required');
@@ -193,16 +214,16 @@ export const deviceApi = {
             method: 'DELETE'
         });
     }
-};
+ };
 
 // Connection API Calls
 export const connectionApi = {
-    getAllConnections: () => apiCall('/connections'),
+    getAllConnections: () => apiCall('/api/connections'),
 
     addConnection: (connectionData) => {
         debug('Adding connection:', connectionData);
         validators.connection(connectionData);
-        return apiCall('/connections', {
+        return apiCall('/api/connections', {
             method: 'POST',
             body: JSON.stringify(connectionData)
         });
@@ -211,7 +232,7 @@ export const connectionApi = {
     updateConnection: (connectionId, connectionData) => {
         debug('Updating connection:', connectionId, connectionData);
         if (!connectionId) throw new Error('Connection ID is required');
-        return apiCall(`/connections/${connectionId}`, {
+        return apiCall(`/api/connections/${connectionId}`, {
             method: 'PUT',
             body: JSON.stringify(connectionData)
         });
@@ -220,11 +241,12 @@ export const connectionApi = {
     removeConnection: (connectionId) => {
         debug('Removing connection:', connectionId);
         if (!connectionId) throw new Error('Connection ID is required');
-        return apiCall(`/connections/${connectionId}`, {
+        return apiCall(`/api/connections/${connectionId}`, {
             method: 'DELETE'
         });
     }
 };
+
 
 // Project API Calls
 export const projectApi = {

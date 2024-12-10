@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impact of CIP Values on Network Devices</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        .bg-dark-blue { 
+            background-color: #1a202c; 
+        }
+        .hover\:bg-dark-blue-light:hover { 
+            background-color: #2d3748; 
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-dark-blue text-white fixed w-full z-10 top-0 shadow">
+        <div class="container mx-auto flex items-center justify-between p-4">
+            <div class="flex items-center">
+                <a href="/frontend/index.html" class="flex items-center">
+                    <img src="/frontend/CIPlogo.png" alt="Aegis Analytica Logo" class="h-8 mr-2">
+                    <span class="font-semibold text-xl">Aegis Analytica</span>
+                </a>
+            </div>
+            <div class="hidden md:flex space-x-4">
+                <a href="/frontend/index.html" class="hover:underline">Home</a>
+                <a href="/frontend/cip_control.html" class="hover:underline">CIP Controls</a>
+                <a href="/frontend/cip_impact.html" class="hover:underline active">CIP Impact</a>
+                <a href="/frontend/cip_val.html" class="hover:underline">CIP Values</a>
+                <a href="/frontend/help.html" class="hover:underline">Help</a>
+            </div>
+            <div class="md:hidden">
+                <button id="menu-toggle" class="focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="/frontend/index.html" class="block px-4 py-2 hover:bg-dark-blue-light">Home</a>
+            <a href="/frontend/cip_control.html" class="block px-4 py-2 hover:bg-dark-blue-light">CIP Controls</a>
+            <a href="/frontend/cip_impact.html" class="block px-4 py-2 hover:bg-dark-blue-light">CIP Impact</a>
+            <a href="/frontend/cip_val.html" class="block px-4 py-2 hover:bg-dark-blue-light">CIP Values</a>
+            <a href="/frontend/help.html" class="block px-4 py-2 hover:bg-dark-blue-light">Help</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 mt-16">
+        <!-- Historical Impact Section -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Historical Impact of CIP Adjustments</h2>
+            
+            <div class="charts-grid">
+                <!-- Risk Score Over Time -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">Risk Score Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="riskScoreChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Metric Changes Over Time -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">Device Metrics Impact</h3>
+                    <div class="chart-container">
+                        <canvas id="metricChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Legend -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-600">Router Metrics</h4>
+                    <p class="text-sm mt-2">Shows network performance and security metrics for router devices.</p>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg">
+                    <h4 class="font-semibold text-green-600">Server Metrics</h4>
+                    <p class="text-sm mt-2">Displays server resource utilization and response time trends.</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-lg">
+                    <h4 class="font-semibold text-purple-600">Workstation Metrics</h4>
+                    <p class="text-sm mt-2">Tracks workstation performance and user experience metrics.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        function initializeCharts() {
+            console.log('Initializing charts...');
+
+            // Risk Score Chart
+            const riskCtx = document.getElementById('riskScoreChart');
+            if (riskCtx) {
+                console.log('Creating Risk Score Chart');
+                new Chart(riskCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Router Risk Score',
+                            data: [65, 59, 80, 81, 56, 55],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }, {
+                            label: 'Server Risk Score',
+                            data: [28, 48, 40, 19, 86, 27],
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }, {
+                            label: 'Workstation Risk Score',
+                            data: [45, 25, 65, 35, 75, 45],
+                            borderColor: 'rgb(139, 92, 246)',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Risk Score'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Metrics Chart
+            const metricCtx = document.getElementById('metricChart');
+            if (metricCtx) {
+                console.log('Creating Metrics Chart');
+                new Chart(metricCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'CPU Usage (%)',
+                            data: [45, 55, 65, 59, 80, 81],
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }, {
+                            label: 'Memory Usage (%)',
+                            data: [65, 59, 80, 81, 56, 55],
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }, {
+                            label: 'Network Load (%)',
+                            data: [35, 45, 55, 65, 45, 35],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Usage (%)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize charts when the page loads
+        window.addEventListener('load', function() {
+            console.log('Window loaded');
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded');
+                return;
+            }
+            console.log('Chart.js loaded successfully');
+            initializeCharts();
+        });
+    </script>
+</body>
+</html>

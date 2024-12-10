@@ -1,6 +1,5 @@
-// dm_canvas.js - Responsible for canvas rendering logic
-
 import { getState, subscribeToState, EVENTS } from '../dm_state.js';
+import zscoreVisualizer from './dm_zscore.js';
 
 // Helper function to draw background grid
 function drawGrid(ctx, canvas) {
@@ -55,7 +54,7 @@ function drawAll() {
         // Draw grid
         drawGrid(ctx, canvas);
 
-        // Draw connections first (so they appear behind devices)
+        // Draw connections first
         connections.forEach(connection => {
             try {
                 if (connection.layer[currentLayer]) {
@@ -71,15 +70,18 @@ function drawAll() {
             try {
                 if (device.layer[currentLayer]) {
                     device.draw(ctx, currentLayer);
+                    // After device is drawn, draw Z-score indicators
+                    zscoreVisualizer.drawZScoreIndicators(ctx, device);
                 }
             } catch (error) {
                 console.error('Error drawing device:', error);
             }
         });
-    } catch (error) {
+    } catch (error) {   // ← Add this catch block
         console.error('Error in drawAll:', error);
     }
 }
+
 
 // Helper function to get mouse position relative to canvas
 function getMousePosition(canvas, event) {

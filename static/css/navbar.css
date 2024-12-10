@@ -1,0 +1,29 @@
+/* Navbar styles */
+.logo-size {
+    height: 32px;  /* Consistent logo size */
+    width: auto;
+    max-height: 32px;
+}
+
+nav {
+    margin: 0;  /* Remove default margins */
+    padding: 0.5rem 0;  /* Minimal padding for the nav container */
+}
+
+nav .container {
+    padding: 0.5rem;  /* Ensure container padding is small to reduce height */
+    width: 100%;  /* Make sure container takes full width */
+    max-width: 100%;  /* Remove any fixed maximum width */
+    justify-content: flex-start;  /* Align everything to the left */
+}
+
+nav a {
+    margin: 0;  /* Remove any default margin from links */
+    padding: 0;  /* Remove any extra padding from links */
+    line-height: 1;  /* Adjust line-height to prevent extra space */
+    color: white; /* Set default text color to white */
+}
+
+nav a:hover {
+    color: #d1d5db;  /* A consistent gray color for hover state */
+}

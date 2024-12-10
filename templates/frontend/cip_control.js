@@ -1,5 +1,7 @@
+// /static/js/cip_control.js
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Network Visualization State
+    // Existing code from original cip_control.js
     let devices = [];
     let connections = [];
     let currentLayer = 'physical';
@@ -500,18 +502,22 @@ document.addEventListener('DOMContentLoaded', function() {
         'vulnerabilitySeverityScore', 'alertnessScore', 'honeypotThreatIndicator',
         'complianceRiskScore', 'supplyChainRiskFactor'
     ];
+
     const inputs = parameters.reduce((acc, param) => {
-        acc[param] = document.getElementById(param);
-        if (acc[param]) {
-            acc[param].value = 5; // Set default value
+        const input = document.getElementById(param);
+        if (input) {
+            input.value = 5; // default value
         }
+        acc[param] = input;
         return acc;
     }, {});
 
     const applyChangesButton = document.getElementById('applyChanges');
+    const confirmChangesButton = document.getElementById('confirmChanges');
+    const riskLevelIndicator = document.getElementById('riskLevelIndicator');
+    const changesSummary = document.getElementById('changesSummary');
     const riskChartCtx = document.getElementById('riskChart').getContext('2d');
 
-    // Initialize Chart.js
     const riskChart = new Chart(riskChartCtx, {
         type: 'line',
         data: {
@@ -525,14 +531,11 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: { beginAtZero: true }
             }
         }
     });
 
-    // Update chart data dynamically
     function updateChart(newRiskLevel) {
         riskChart.data.datasets[0].data.push(newRiskLevel);
         if (riskChart.data.datasets[0].data.length > 7) {
@@ -541,20 +544,18 @@ document.addEventListener('DOMContentLoaded', function() {
         riskChart.update();
     }
 
-    // Calculate and update the risk level
     function updateRiskLevel() {
         const cipValues = parameters.reduce((acc, param) => {
             const input = inputs[param];
             if (input) {
-                acc[param] = parseFloat(input.value) / 10; // Normalize to 0-1
+                acc[param] = parseFloat(input.value) / 10; // normalize to 0-1
             }
             return acc;
         }, {});
 
-        // Calculate average risk level
         const values = Object.values(cipValues);
         const avgRiskLevel = values.reduce((a, b) => a + b, 0) / values.length * 10;
-        
+
         let riskLevel = 'Low';
         let color = 'green';
 
@@ -573,7 +574,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateChart(avgRiskLevel);
 
-        // Update changes summary
         if (changesSummary) {
             changesSummary.innerHTML = `
                 <p>Adjusted Risk Score: ${avgRiskLevel.toFixed(2)}</p>
@@ -582,7 +582,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Add event listeners for real-time updates
     parameters.forEach(param => {
         const input = inputs[param];
         if (input) {
@@ -590,10 +589,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initialize with default values
     updateRiskLevel();
 
-    // Handle apply changes button
     if (applyChangesButton) {
         applyChangesButton.addEventListener('click', function() {
             updateRiskLevel();
@@ -601,10 +598,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle confirm changes button
     if (confirmChangesButton) {
         confirmChangesButton.addEventListener('click', function() {
             alert('Changes confirmed and applied to all devices!');
         });
     }
+
+    // -------------------------
+    // ADDING CIP PARAMETERS DROPDOWN FOR Z-SCORE
+    // -------------------------
+    // We'll create a CIP dropdown in the DOM if it doesn't exist.
+    // Assume there is a container in the HTML with id="cipContainer" where we can append our dropdown.
+    // If no such container exists, you'd add it in device_management.html.jinja2.
+    let cipContainer = document.getElementById('cipContainer');
+    if (!cipContainer) {
+        // If there's no dedicated container, we can insert it into the body or another known element.
+        // For demonstration, append to document.body or a known parent element.
+        cipContainer = document.createElement('div');
+        cipContainer.id = 'cipContainer';
+        document.body.appendChild(cipContainer);
+    }
+
+    // Create the select element
+    const cipParamsSelect = document.createElement('select');
+    cipParamsSelect.id = 'cipParameters';
+    cipParamsSelect.className = 'w-full rounded border px-2 mb-2';
+
+    // Add a default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    defaultOption.textContent = 'Select CIP Parameter';
+    cipParamsSelect.appendChild(defaultOption);
+
+    // Add the Z-Score Mean option
+    const zScoreMeanOption = document.createElement('option');
+    zScoreMeanOption.value = 'z_score_mean';
+    zScoreMeanOption.textContent = 'Z-Score Mean';
+    cipParamsSelect.appendChild(zScoreMeanOption);
+
+    // Optionally add other CIP-related parameters for visualization if needed
+    const threatLevelOption = document.createElement('option');
+    threatLevelOption.value = 'threatLevel';
+    threatLevelOption.textContent = 'Threat Level';
+    cipParamsSelect.appendChild(threatLevelOption);
+
+    // Append to container
+    cipContainer.appendChild(cipParamsSelect);
+
+    // Note: dm_zscore.js listens for 'change' on #cipParameters and checks if `e.target.value === 'z_score_mean'`.
+    // This ensures that selecting Z-Score Mean triggers Z-score visualization logic.
+
+    // If needed, you can add event listeners here as well, but dm_zscore.js should handle it.
+    // Just ensure dm_zscore.js is loaded after this script so it can attach the event listener.
+
 });

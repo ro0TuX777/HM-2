@@ -1,6 +1,5 @@
 # models/mutual_information.py
 
-import numpy as np
 from sklearn.metrics import mutual_info_score
 
 def calculate_mutual_information(X_events, Y_events):

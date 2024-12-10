@@ -2,27 +2,27 @@
     <div class="container flex items-center justify-start p-1 w-full ml-10"> <!-- Increased left margin to move the navbar to the right -->
         <div class="flex items-start mr-12"> <!-- Added larger margin-right to create more space between the logo and the links -->
             <a href="{{ url_for('home') }}" class="flex items-start hover:opacity-90 transition-opacity duration-200 m-0 p-0">
-                <img src="{{ url_for('static', filename='CIPlogo.png') }}" alt="Aegis Analytica Logo" class="logo-size mr-2">
+                <img src="{{ url_for('static', filename='CIPlogo.png') }}" alt="Aegis Analytica Logo" class="navbar-logo h-8 mr-2"> <!-- Added navbar-logo class -->
                 <span class="font-semibold text-lg tracking-tight m-0 p-0 leading-none">Aegis Analytica</span>
             </a>
         </div>
         <div class="flex items-start space-x-12"> <!-- Increased spacing between links to improve readability and prevent overlap -->
-            <a href="{{ url_for('home') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'home' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Home</a>
-            <a href="{{ url_for('cip_control') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_control' %}text-blue-300 border-b-2 border-blue-300{% endif %}">CIP Controls</a>
-            <a href="{{ url_for('cip_impact') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_impact' %}text-blue-300 border-b-2 border-blue-300{% endif %}">CIP Impact</a>
-            <a href="{{ url_for('cip_val') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_val' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Impact of CIP Values</a>
-            <a href="{{ url_for('control_panel') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'control_panel' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Control Panel</a>
-            <a href="{{ url_for('device_management') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'device_management' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Device Management</a>
-            <a href="{{ url_for('help_page') }}" class="hover:text-blue-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'help' %}text-blue-300 border-b-2 border-blue-300{% endif %}">Help</a>
+            <a href="{{ url_for('home') }}" class="hover:text-gray-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'home' %}text-white border-b-2 border-white{% endif %}">Home</a>
+            <a href="{{ url_for('cip_control') }}" class="hover:text-gray-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_control' %}text-white border-b-2 border-white{% endif %}">CIP Controls</a>
+            <a href="{{ url_for('cip_impact') }}" class="hover:text-gray-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_impact' %}text-white border-b-2 border-white{% endif %}">CIP Impact</a>
+            <a href="{{ url_for('cip_val') }}" class="hover:text-gray-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'cip_val' %}text-white border-b-2 border-white{% endif %}">Impact of CIP Values</a>
+            <a href="{{ url_for('control_panel') }}" class="hover:text-gray-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'control_panel' %}text-white border-b-2 border-white{% endif %}">Control Panel</a>
+            <a href="{{ url_for('device_management') }}" class="hover:text-gray-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'device_management' %}text-white border-b-2 border-white{% endif %}">Device Management</a>
+            <a href="{{ url_for('help_page') }}" class="hover:text-gray-200 transition-colors duration-200 font-medium m-0 p-0 leading-none {% if active_page == 'help' %}text-white border-b-2 border-white{% endif %}">Help</a>
         </div>
     </div>
 </nav>
 
 <style>
-.logo-size {
-    height: 40px;  /* Smaller logo size to improve alignment */
+.navbar-logo {
+    height: 32px !important;  /* Explicitly set logo size */
+    max-height: 32px !important;
     width: auto;
-    max-height: 40px;
 }
 
 nav {
@@ -41,9 +41,10 @@ nav a {
     margin: 0;  /* Remove any default margin from links */
     padding: 0;  /* Remove any extra padding from links */
     line-height: 1;  /* Adjust line-height to prevent extra space */
+    color: white; /* Set default text color to white */
 }
 
-nav .flex {
-    align-items: flex-start;  /* Align items to the top and start */
+nav a:hover {
+    color: #d1d5db;  /* A consistent gray color for hover state */
 }
 </style>

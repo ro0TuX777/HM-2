@@ -1,5 +1,3 @@
-// dm_connection.js
-
 import { getState, addConnection } from '../dm_state.js';
 import { showError, showSuccess } from './dm_ui.js';
 import { connectionApi } from './services/dm_api.js';
@@ -24,9 +22,9 @@ class Connection {
 
         // Layer visibility based on connection type
         this.layer = {
-            physical: type === 'ethernet' || type === 'fiber' || type === 'wifi',
-            logical: type === 'ethernet' || type === 'fiber' || type === 'vpn',
-            application: type === 'vpn'
+            physical: true,
+            logical: true,
+            application: true // Allow all connection types to be visible in all layers
         };
     }
 
@@ -127,41 +125,7 @@ function validateConnection(sourceDevice, targetDevice, type) {
         throw new Error('Connection already exists between these devices');
     }
 
-    // Define valid connection pairs for each type
-    const connectionRules = {
-        ethernet: [
-            ['router', 'switch'],
-            ['router', 'server'],
-            ['router', 'workstation'],
-            ['switch', 'server'],
-            ['switch', 'workstation'],
-            ['switch', 'switch']
-        ],
-        fiber: [
-            ['router', 'router'],
-            ['router', 'switch'],
-            ['switch', 'switch']
-        ],
-        vpn: [
-            ['router', 'router'],
-            ['router', 'server']
-        ],
-        wifi: [
-            ['router', 'workstation'],
-            ['router', 'client']
-        ]
-    };
-
-    // Check if the device pair is valid for the connection type
-    const isValidPair = connectionRules[type]?.some(([type1, type2]) => 
-        (sourceDevice.type === type1 && targetDevice.type === type2) ||
-        (sourceDevice.type === type2 && targetDevice.type === type1)
-    );
-
-    if (!isValidPair) {
-        throw new Error(`Selected devices (${sourceDevice.type} and ${targetDevice.type}) are not compatible with ${type} connection`);
-    }
-
+    // Remove specific connection rules to allow any type of connection
     return true;
 }
 

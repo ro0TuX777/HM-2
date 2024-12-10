@@ -7,6 +7,7 @@
     {% block head %}{% endblock %}
     <title>{% block title %}Aegis Analytica{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}"> <!-- Included the new navbar CSS -->
 </head>
 <body>
     {% include 'frontend/_navbar.html.jinja2' %}

@@ -3,7 +3,6 @@
 from flask import Blueprint, request, jsonify
 import sqlite3
 import os
-import json
 
 # Define Blueprint
 device_management_db_bp = Blueprint('device_management_db', __name__)
@@ -84,15 +83,10 @@ def add_device():
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
-        # Ensure numeric values are properly formatted
-        try:
-            x = float(data['x'])
-            y = float(data['y'])
-        except (ValueError, TypeError):
-            return jsonify({'error': 'Invalid coordinates format'}), 400
-
         with sqlite3.connect(DATABASE_PATH) as conn:
             cursor = conn.cursor()
+            
+            # Insert device
             cursor.execute('''
                 INSERT INTO devices (
                     name, type, x, y, cpu_usage, memory_usage, disk_usage,
@@ -101,56 +95,129 @@ def add_device():
             ''', (
                 str(data['name']),
                 str(data['type']),
-                x,
-                y,
+                float(data['x']),
+                float(data['y']),
                 0,  # cpu_usage
                 0,  # memory_usage
                 0,  # disk_usage
                 0,  # vulnerability_score
-                '192.168.1.1',  # default ip_address
-                data.get('subnet', '255.255.255.0')  # subnet_mask
+                '192.168.1.1',
+                data.get('subnet', '255.255.255.0')
             ))
             
             device_id = cursor.lastrowid
+            
+            # Insert initial metrics history
+            cursor.execute('''
+                INSERT INTO device_metrics_history (
+                    device_id, cpu_usage, memory_usage, disk_usage,
+                    vulnerability_score, network_usage, temperature
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                device_id,
+                0.0,  # Initial cpu_usage
+                0.0,  # Initial memory_usage
+                0.0,  # Initial disk_usage
+                0.0,  # Initial vulnerability_score
+                0.0,  # Initial network_usage
+                40.0  # Initial temperature
+            ))
             
             return jsonify({
                 'message': 'Device added successfully',
                 'device_id': device_id
             }), 201
 
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")  # Debug print
-        return jsonify({'error': str(e)}), 400
     except Exception as e:
-        print(f"General error: {e}")  # Debug print
+        print(f"Error adding device: {e}")
         return jsonify({'error': str(e)}), 400
 
-@device_management_db_bp.route('/update_device/<int:device_id>', methods=['PUT'])
-def update_device(device_id):
-    data = request.json
+@device_management_db_bp.route('/device_metrics/<string:device_id>', methods=['PUT', 'OPTIONS'])
+def update_device_metrics(device_id):
+    if request.method == "OPTIONS":
+        return jsonify({"message": "OK"}), 200
+        
     try:
-        query_db('''
-            UPDATE devices
-            SET name = ?, type = ?, x = ?, y = ?, cpu_usage = ?,
-                memory_usage = ?, disk_usage = ?, vulnerability_score = ?,
-                ip_address = ?, subnet_mask = ?
-            WHERE id = ?
-        ''', (
-            data['name'],
-            data['type'],
-            data['x'],
-            data['y'],
-            data.get('metrics', {}).get('cpu_usage', 0),
-            data.get('metrics', {}).get('memory_usage', 0),
-            data.get('metrics', {}).get('disk_usage', 0),
-            data.get('metrics', {}).get('vulnerability_score', 0),
-            data.get('network', {}).get('ip_address', '192.168.1.1'),
-            data.get('network', {}).get('subnet_mask', '255.255.255.0'),
-            device_id
-        ))
-        return jsonify({'message': 'Device updated successfully'}), 200
+        data = request.get_json()
+        print(f"DEBUG: Received metrics update for device {device_id}:", data)
+
+        with sqlite3.connect(DATABASE_PATH) as conn:
+            cursor = conn.cursor()
+            
+            # Update current metrics in devices table
+            cursor.execute('''
+                UPDATE devices 
+                SET cpu_usage = ?,
+                    memory_usage = ?,
+                    disk_usage = ?,
+                    vulnerability_score = ?
+                WHERE id = ?
+            ''', (
+                data.get('cpu', 0),
+                data.get('memory', 0),
+                data.get('disk', 0),
+                data.get('vulnerability', 0),
+                device_id
+            ))
+
+            # Insert into history table
+            cursor.execute('''
+                INSERT INTO device_metrics_history (
+                    device_id, cpu_usage, memory_usage, disk_usage,
+                    vulnerability_score, network_usage, temperature
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                device_id,
+                data.get('cpu', 0),
+                data.get('memory', 0),
+                data.get('disk', 0),
+                data.get('vulnerability', 0),
+                data.get('network', 0),
+                data.get('temperature', 40)
+            ))
+            
+            conn.commit()
+            return jsonify({'message': 'Metrics updated successfully'}), 200
+            
     except Exception as e:
+        print(f"Error updating metrics: {e}")  # Debug log
         return jsonify({'error': str(e)}), 400
+
+# Add this route alongside the other device management routes
+@device_management_db_bp.route('/device_metrics/<int:device_id>', methods=['GET'])
+def get_device_metrics_history(device_id):
+    try:
+        metrics = query_db('''
+            SELECT 
+                device_id,
+                timestamp,
+                cpu_usage,
+                memory_usage,
+                disk_usage,
+                vulnerability_score,
+                network_usage,
+                temperature
+            FROM device_metrics_history 
+            WHERE device_id = ? 
+            ORDER BY timestamp DESC 
+            LIMIT 100
+        ''', (device_id,))
+        
+        return jsonify([{
+            'device_id': m[0],
+            'timestamp': m[1],
+            'metrics': {
+                'cpu_usage': m[2],
+                'memory_usage': m[3],
+                'disk_usage': m[4],
+                'vulnerability_score': m[5],
+                'network_usage': m[6],
+                'temperature': m[7]
+            }
+        } for m in metrics]), 200
+    except Exception as e:
+        print(f"Error fetching metrics history: {e}")  # Debug log
+        return jsonify({'error': str(e)}), 500
 
 @device_management_db_bp.route('/remove_device/<int:device_id>', methods=['DELETE'])
 def remove_device(device_id):

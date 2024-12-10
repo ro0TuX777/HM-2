@@ -1,26 +1,57 @@
 from flask import Blueprint, request, jsonify
-from models.composite_risk_score import calculate_composite_risk_score
 from models.ema import calculate_ema
-from models.holt_winters import holt_winters_forecast
-from models.logistic_regression import logistic_regression_threshold_adaptation
-from models.mutual_information import calculate_mutual_information
-from models.pearson_correlation import calculate_pearson_correlation
-from models.time_decay import calculate_time_decay
-from models.time_decay_multiple import calculate_time_decay_multiple
-from models.user_risk_score import calculate_user_risk_score
-from models.weighted_score import calculate_weighted_score
-from models.wma import calculate_wma
-from models.zscore import calculate_zscore
 from models.sigmoid_modified import sigmoid_modified
 from utils.validation import validate_request_data, format_error
-from database import add_device, update_device, get_device
 
-network_routes = Blueprint('network_routes', __name__)
+network_viz_bp = Blueprint('network_routes', __name__)
 
-@network_routes.route('/adjusted_metrics', methods=['POST'])
+@network_viz_bp.route('/api/connections', methods=['POST'])
+def add_connection():
+    """
+    Route to add a new connection.
+    """
+    data = request.json
+    
+    # Validate input data
+    if not data or 'source_device_id' not in data or 'target_device_id' not in data:
+        return jsonify({'error': 'Invalid input data'}), 400
+
+    # Example logic for adding a connection
+    connection = {
+        'source_device_id': data['source_device_id'],
+        'target_device_id': data['target_device_id'],
+        'connection_type': data.get('connection_type', 'default'),
+    }
+    
+    # Replace with database logic as needed
+    return jsonify({'message': 'Connection added successfully', 'connection': connection}), 201
+
+@network_viz_bp.route('/api/network/topology/details', methods=['GET'])
+def get_topology_details():
+    """
+    Route to retrieve detailed network topology information.
+    """
+    # Example detailed topology data
+    detailed_topology_data = {
+        'devices': [
+            {'id': 1, 'name': 'Device 1', 'type': 'Router', 'ip': '192.168.1.1'},
+            {'id': 2, 'name': 'Device 2', 'type': 'Switch', 'ip': '192.168.1.2'}
+        ],
+        'connections': [
+            {'source': 1, 'target': 2, 'type': 'ethernet', 'bandwidth': '1Gbps'}
+        ]
+    }
+    return jsonify(detailed_topology_data)
+
+@network_viz_bp.route('/adjusted_metrics', methods=['POST'])
 def adjusted_metrics():
+    """
+    Route to calculate adjusted metrics based on input data.
+    """
     data = request.json
     required_fields = ['cpu_usage', 'memory_usage', 'risk_level']
+    
+    # Validate request data
     is_valid, error_message = validate_request_data(required_fields, data)
     if not is_valid:
         return jsonify(format_error(error_message)), 400
@@ -39,5 +70,3 @@ def adjusted_metrics():
         'adjusted_cpu_usage': risk_adjusted_cpu,
         'adjusted_memory_usage': risk_adjusted_memory
     })
-
-# Existing routes for device management and other functionalities...

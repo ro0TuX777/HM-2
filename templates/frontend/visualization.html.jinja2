@@ -1,12 +1,55 @@
+{% extends 'frontend/base.html.jinja2' %}
+
+{% block title %}Visualization Panel{% endblock %}
+
+{% block content %}
+<nav class="bg-dark-blue text-white fixed w-full z-10 top-0 shadow">
+    <div class="container mx-auto flex items-center justify-between p-4">
+        <div class="flex items-center">
+            <a href="/" class="flex items-center">
+                <img src="{{ url_for('static', filename='CIPlogo.png') }}" alt="Aegis Analytica Logo" class="h-8 mr-2">
+                <span class="font-semibold text-xl">Aegis Analytica</span>
+            </a>
+        </div>
+        <div class="hidden md:flex space-x-4">
+            <a href="/" class="hover:underline">Home</a>
+            <a href="#" class="hover:underline">Network Devices</a>
+            <a href="{{ url_for('cip_control') }}" class="hover:underline">CIP Controls</a>
+            <a href="{{ url_for('cip_impact') }}" class="hover:underline">CIP Impact</a>
+            <a href="{{ url_for('cip_val') }}" class="hover:underline">Impact of CIP Values</a>
+            <a href="{{ url_for('help_page') }}" class="hover:underline">Help</a>
+            <a href="#" class="hover:underline active">Settings</a>
+        </div>
+        <div class="md:hidden">
+            <button id="menu-toggle" class="focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden">
+        <a href="/" class="block px-4 py-2 hover:bg-dark-blue-light">Home</a>
+        <a href="#" class="block px-4 py-2 hover:bg-dark-blue-light">Network Devices</a>
+        <a href="{{ url_for('cip_control') }}" class="block px-4 py-2 hover:bg-dark-blue-light">CIP Controls</a>
+        <a href="{{ url_for('cip_impact') }}" class="block px-4 py-2 hover:bg-dark-blue-light">CIP Impact</a>
+        <a href="{{ url_for('cip_val') }}" class="block px-4 py-2 hover:bg-dark-blue-light">Impact of CIP Values</a>
+        <a href="{{ url_for('help_page') }}" class="block px-4 py-2 hover:bg-dark-blue-light">Help</a>
+        <a href="#" class="block px-4 py-2 hover:bg-dark-blue-light active">Settings</a>
+    </div>
+</nav>
+
 <!-- Visualization Panel -->
 <div class="bg-white p-4 rounded shadow">
     <h2 class="text-xl font-semibold mb-2">Visualization</h2>
     <canvas id="riskChart" width="400" height="200"></canvas>
     <div id="riskLevelIndicator" class="mt-4 text-center text-lg font-bold"></div>
 </div>
+
 <!-- Dynamic Update and Confirmation Panel -->
 <div class="bg-white p-4 rounded shadow mt-4">
     <h2 class="text-xl font-semibold mb-2">Summary of Changes</h2>
     <div id="changesSummary" class="mb-4 text-sm text-gray-700"></div>
     <button id="confirmChanges" class="bg-green-500 text-white px-4 py-2 rounded">Confirm and Apply Changes</button>
 </div>
+{% endblock %}

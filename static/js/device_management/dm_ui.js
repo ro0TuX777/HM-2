@@ -1,5 +1,3 @@
-// dm_ui.js
-
 import { 
     getState, 
     setCurrentLayer, 
@@ -49,7 +47,8 @@ const UI = {
         gateway: document.getElementById('gateway'),
         dnsServer: document.getElementById('dnsServer'),
         customMetricSlider: document.getElementById('customMetricSlider'),
-        customMetricValue: document.getElementById('customMetricValue')
+        customMetricValue: document.getElementById('customMetricValue'),
+        loadFile: document.getElementById('loadFile')
     },
     metrics: {
         cpu: document.getElementById('cpuMetric'),
@@ -59,7 +58,10 @@ const UI = {
         cpuValue: document.getElementById('cpuValue'),
         memoryValue: document.getElementById('memoryValue'),
         diskValue: document.getElementById('diskValue'),
-        vulnerabilityValue: document.getElementById('vulnerabilityValue')
+        vulnerabilityValue: document.getElementById('vulnerabilityValue'),
+        networkValue: document.getElementById('networkValue'),
+        temperatureValue: document.getElementById('temperatureValue'),
+        lastUpdateTime: document.getElementById('lastUpdateTime')
     },
     containers: {
         error: document.getElementById('error-container'),
@@ -195,6 +197,7 @@ function updateConnectionsList(connections, currentLayer) {
 function handleDeviceSelection(device) {
     setSelectedDevice(device);
     populateDeviceConfig(device);
+    updateMetricsDisplay(device.metrics);
 }
 
 // Populate Device Configuration Panel
@@ -207,6 +210,31 @@ function populateDeviceConfig(device) {
     UI.inputs.dnsServer.value = device.dnsServer || '';
 }
 
+// Update metrics display function
+function updateMetricsDisplay(metrics) {
+    if (!metrics) return;
+
+    // Update device name
+    const deviceName = document.getElementById('metricDeviceName');
+    if (deviceName) {
+        deviceName.textContent = metrics.name || 'Selected Device';
+    }
+
+    // Update primary metrics
+    UI.metrics.cpuValue.textContent = `${metrics.cpu}%`;
+    UI.metrics.memoryValue.textContent = `${metrics.memory}%`;
+    UI.metrics.diskValue.textContent = `${metrics.disk}%`;
+    UI.metrics.vulnerabilityValue.textContent = `${metrics.vulnerability}%`;
+
+    // Update additional metrics
+    document.getElementById('networkValue').textContent = `${metrics.network} Mbps`;
+    document.getElementById('temperatureValue').textContent = `${metrics.temperature}°C`;
+    
+    // Update timestamp
+    document.getElementById('lastUpdateTime').textContent = 
+        `Last Update: ${new Date().toLocaleTimeString()}`;
+}
+
 // Initialize UI
 function initializeUI() {
     try {
@@ -214,6 +242,10 @@ function initializeUI() {
         if (!state.initialized) {
             throw new Error('Cannot initialize UI: State not initialized');
         }
+
+        window.addEventListener('metrics-updated', (event) => {
+            updateMetricsDisplay(event.detail.metrics);
+        });
 
         setupEventListeners();
         setupStateSubscriptions();
@@ -299,27 +331,104 @@ function setupEventListeners() {
     });
 
     // Load Configuration
-    UI.buttons.load?.addEventListener('click', () => {
-        const projectName = prompt("Enter the name of the configuration to load:");
-        if (projectName) {
-            fetch(`/api/projects/load?name=${projectName}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load configuration');
+UI.buttons.load?.addEventListener('click', () => {
+    UI.inputs.loadFile.click(); // Trigger the file input click
+});
+
+UI.inputs.loadFile?.addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                console.log('Loading file content:', e.target.result);
+                const data = JSON.parse(e.target.result);
+                console.log('Parsed JSON data:', data);
+                
+                // Clear existing state
+                const state = getState();
+                console.log('Current state before clearing:', state);
+
+                state.devices = [];
+                state.connections = [];
+
+                // Recreate devices
+                for (const deviceData of data.devices) {
+                    console.log('Creating device from:', deviceData);
+                    const device = new Device(  // Added this line
+                        deviceData.x,
+                        deviceData.y,
+                        deviceData.name,
+                        deviceData.type
+                    );
+                    device.id = deviceData.id;
+                    device.ipAddress = deviceData.ipAddress;
+                    device.subnetMask = deviceData.subnetMask;
+                    device.macAddress = deviceData.macAddress;
+                    device.gateway = deviceData.gateway;
+                    device.dnsServer = deviceData.dnsServer;
+                    device.metrics = deviceData.metrics;
+                    device.subnet = deviceData.subnet;
+                    device.services = deviceData.services;
+                    device.layer = deviceData.layer;
+                    
+                    addDevice(device);
+                }
+
+                // Recreate connections
+                for (const connData of data.connections) {
+                    console.log('Processing connection:', connData);
+                    const startDevice = state.devices.find(d => d.id === connData.source_device_id); // Changed from startDeviceId
+                    const endDevice = state.devices.find(d => d.id === connData.target_device_id);   // Changed from endDeviceId
+                    
+                    console.log('Found devices:', {
+                        startDevice: startDevice ? startDevice.id : 'not found',
+                        endDevice: endDevice ? endDevice.id : 'not found'
+                    });
+                    
+                    if (startDevice && endDevice) {
+                        try {
+                            console.log('Creating connection between:', {
+                                start: startDevice.name,
+                                end: endDevice.name,
+                                type: connData.type,
+                                bandwidth: connData.bandwidth
+                            });
+                            
+                            const connection = await createConnection(
+                                startDevice,
+                                endDevice,
+                                connData.type,
+                                connData.bandwidth
+                            );
+                            connection.id = connData.id;
+                            connection.layer = connData.layer;
+                            connection.startPortId = connData.startPortId;  // Added these
+                            connection.endPortId = connData.endPortId;      // port IDs
+                            
+                            console.log('Connection created successfully:', connection);
+                            addConnection(connection);
+                        } catch (error) {
+                            console.error('Failed to create connection:', error);
+                        }
+                    } else {
+                        console.warn('Could not find devices for connection:', {
+                            startId: connData.source_device_id,
+                            endId: connData.target_device_id
+                        });
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    // Handle loading the data into the state
-                    // This part will need to be implemented based on how the data is structured
-                    console.log(data);
-                    showSuccess('Configuration loaded successfully');
-                })
-                .catch(error => {
-                    showError(`Failed to load configuration: ${error.message}`);
-                });
-        }
-    });
+                }
+
+                showSuccess('Configuration loaded successfully');
+                updateUI();
+            } catch (error) {
+                console.error('Error loading configuration:', error);
+                showError(`Failed to load configuration: ${error.message}`);
+            }
+        };
+        reader.readAsText(file);
+    }
+});
 
     // Slider for Custom Metric
     UI.inputs.customMetricSlider?.addEventListener('input', (event) => {

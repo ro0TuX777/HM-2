@@ -3,6 +3,42 @@
 {% block title %}Impact of CIP Values on Network Devices{% endblock %}
 
 {% block content %}
+<nav class="bg-dark-blue text-white fixed w-full z-10 top-0 shadow">
+    <div class="container mx-auto flex items-center justify-between p-4">
+        <div class="flex items-center">
+            <a href="/" class="flex items-center">
+                <img src="{{ url_for('static', filename='CIPlogo.png') }}" alt="Aegis Analytica Logo" class="h-10 mr-2"> <!-- Adjusted logo size -->
+                <span class="font-semibold text-xl">Aegis Analytica</span>
+            </a>
+        </div>
+        <div class="hidden md:flex space-x-4">
+            <a href="/" class="hover:underline">Home</a>
+            <a href="{{ url_for('device_management') }}" class="hover:underline">Device Management</a>
+            <a href="#" class="hover:underline">Network Devices</a>
+            <a href="{{ url_for('cip_control') }}" class="hover:underline">CIP Controls</a>
+            <a href="{{ url_for('cip_impact') }}" class="hover:underline active">CIP Impact</a>
+            <a href="{{ url_for('cip_val') }}" class="hover:underline">Impact of CIP Values</a>
+            <a href="{{ url_for('help_page') }}" class="hover:underline">Help</a>
+        </div>
+        <div class="md:hidden">
+            <button id="menu-toggle" class="focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden">
+        <a href="/" class="block px-4 py-2 hover:bg-dark-blue-light">Home</a>
+        <a href="{{ url_for('device_management') }}" class="block px-4 py-2 hover:bg-dark-blue-light">Device Management</a>
+        <a href="#" class="block px-4 py-2 hover:bg-dark-blue-light">Network Devices</a>
+        <a href="{{ url_for('cip_control') }}" class="block px-4 py-2 hover:bg-dark-blue-light">CIP Controls</a>
+        <a href="{{ url_for('cip_impact') }}" class="block px-4 py-2 hover:bg-dark-blue-light">CIP Impact</a>
+        <a href="{{ url_for('cip_val') }}" class="block px-4 py-2 hover:bg-dark-blue-light">Impact of CIP Values</a>
+        <a href="{{ url_for('help_page') }}" class="block px-4 py-2 hover:bg-dark-blue-light">Help</a>
+    </div>
+</nav>
+
 <div class="container mx-auto p-4 mt-16">
     <h1 class="text-2xl font-bold mb-4">Impact of CIP Values on Network Devices</h1>
 
@@ -102,183 +138,6 @@
                 <p class="text-sm text-gray-600">
                     Gradual influence on system resource allocation
                 </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Enhanced Risk Indicators Section -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-2xl font-semibold mb-6">Impact on Overall Network Risk</h2>
-
-        <!-- Risk Summary Dashboard -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Overall Risk Score -->
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
-                <h3 class="text-lg font-semibold mb-4">Network Risk Score</h3>
-                <div class="relative w-32 h-32 mx-auto">
-                    <svg class="transform -rotate-90 w-32 h-32">
-                        <circle cx="64" cy="64" r="60" stroke="#E5E7EB" stroke-width="8" fill="transparent"/>
-                        <circle cx="64" cy="64" r="60" stroke="#3B82F6" stroke-width="8" fill="transparent"
-                            stroke-dasharray="377" stroke-dashoffset="94"/>
-                    </svg>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <span class="text-3xl font-bold text-blue-600">75%</span>
-                    </div>
-                </div>
-                <div class="mt-4 text-center text-sm text-gray-600">
-                    Current Overall Risk Level
-                </div>
-            </div>
-
-            <!-- Risk Distribution -->
-            <div class="col-span-2 bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Risk Distribution</h3>
-                <div class="grid grid-cols-4 gap-4">
-                    <div class="text-center">
-                        <div class="w-full h-24 bg-red-100 rounded-t-lg relative">
-                            <div class="absolute bottom-0 w-full h-3/4 bg-red-500 rounded-b-lg"></div>
-                        </div>
-                        <p class="text-sm mt-2">Critical</p>
-                        <p class="text-xs text-gray-500">25%</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-full h-24 bg-orange-100 rounded-t-lg relative">
-                            <div class="absolute bottom-0 w-full h-1/2 bg-orange-500 rounded-b-lg"></div>
-                        </div>
-                        <p class="text-sm mt-2">High</p>
-                        <p class="text-xs text-gray-500">35%</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-full h-24 bg-yellow-100 rounded-t-lg relative">
-                            <div class="absolute bottom-0 w-full h-1/3 bg-yellow-500 rounded-b-lg"></div>
-                        </div>
-                        <p class="text-sm mt-2">Medium</p>
-                        <p class="text-xs text-gray-500">30%</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-full h-24 bg-green-100 rounded-t-lg relative">
-                            <div class="absolute bottom-0 w-full h-1/4 bg-green-500 rounded-b-lg"></div>
-                        </div>
-                        <p class="text-sm mt-2">Low</p>
-                        <p class="text-xs text-gray-500">10%</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Network Risk Heatmap -->
-        <div class="mb-8">
-            <h3 class="text-xl font-semibold mb-4">Network Risk Heatmap</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Heatmap Grid -->
-                <div class="md:col-span-3 grid grid-cols-4 gap-4">
-                    <!-- Core Infrastructure -->
-                    <div class="space-y-4">
-                        <div class="p-4 bg-red-100 rounded-lg text-center">
-                            <i class="fas fa-network-wired text-2xl text-red-600 mb-2"></i>
-                            <p class="text-sm font-semibold">Core Router</p>
-                            <p class="text-xs text-red-600">Critical Risk</p>
-                        </div>
-                        <div class="p-4 bg-orange-100 rounded-lg text-center">
-                            <i class="fas fa-shield-alt text-2xl text-orange-600 mb-2"></i>
-                            <p class="text-sm font-semibold">Firewall</p>
-                            <p class="text-xs text-orange-600">High Risk</p>
-                        </div>
-                    </div>
-
-                    <!-- Servers -->
-                    <div class="space-y-4">
-                        <div class="p-4 bg-orange-100 rounded-lg text-center">
-                            <i class="fas fa-server text-2xl text-orange-600 mb-2"></i>
-                            <p class="text-sm font-semibold">App Server</p>
-                            <p class="text-xs text-orange-600">High Risk</p>
-                        </div>
-                        <div class="p-4 bg-yellow-100 rounded-lg text-center">
-                            <i class="fas fa-database text-2xl text-yellow-600 mb-2"></i>
-                            <p class="text-sm font-semibold">DB Server</p>
-                            <p class="text-xs text-yellow-600">Medium Risk</p>
-                        </div>
-                    </div>
-
-                    <!-- Network Devices -->
-                    <div class="space-y-4">
-                        <div class="p-4 bg-yellow-100 rounded-lg text-center">
-                            <i class="fas fa-hdd text-2xl text-yellow-600 mb-2"></i>
-                            <p class="text-sm font-semibold">Storage</p>
-                            <p class="text-xs text-yellow-600">Medium Risk</p>
-                        </div>
-                        <div class="p-4 bg-green-100 rounded-lg text-center">
-                            <i class="fas fa-print text-2xl text-green-600 mb-2"></i>
-                            <p class="text-sm font-semibold">Printer</p>
-                            <p class="text-xs text-green-600">Low Risk</p>
-                        </div>
-                    </div>
-
-                    <!-- End Points -->
-                    <div class="space-y-4">
-                        <div class="p-4 bg-yellow-100 rounded-lg text-center">
-                            <i class="fas fa-desktop text-2xl text-yellow-600 mb-2"></i>
-                            <p class="text-sm font-semibold">Workstation</p>
-                            <p class="text-xs text-yellow-600">Medium Risk</p>
-                        </div>
-                        <div class="p-4 bg-green-100 rounded-lg text-center">
-                            <i class="fas fa-laptop text-2xl text-green-600 mb-2"></i>
-                            <p class="text-sm font-semibold">Laptop</p>
-                            <p class="text-xs text-green-600">Low Risk</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Risk Level Legend -->
-                <div class="bg-gray-50 p-6 rounded-lg">
-                    <h4 class="font-semibold mb-4">Risk Level Legend</h4>
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <div class="w-6 h-6 bg-red-100 rounded mr-2"></div>
-                            <span class="text-sm">Critical Risk (0.8-1.0)</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-6 h-6 bg-orange-100 rounded mr-2"></div>
-                            <span class="text-sm">High Risk (0.6-0.8)</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-6 h-6 bg-yellow-100 rounded mr-2"></div>
-                            <span class="text-sm">Medium Risk (0.4-0.6)</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-6 h-6 bg-green-100 rounded mr-2"></div>
-                            <span class="text-sm">Low Risk (0.0-0.4)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Risk Factors Summary -->
-        <div class="bg-blue-50 p-6 rounded-lg">
-            <h3 class="text-xl font-semibold mb-4">Risk Factor Analysis</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h4 class="font-semibold text-blue-600 mb-2">Infrastructure Risk</h4>
-                    <p class="text-sm text-gray-600">
-                        Core network components show elevated risk levels due to their critical role 
-                        and exposure to threats.
-                    </p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h4 class="font-semibold text-blue-600 mb-2">Server Risk</h4>
-                    <p class="text-sm text-gray-600">
-                        Application and database servers maintain moderate to high risk levels based 
-                        on service criticality.
-                    </p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h4 class="font-semibold text-blue-600 mb-2">Endpoint Risk</h4>
-                    <p class="text-sm text-gray-600">
-                        End-user devices show varying risk levels depending on user behavior and 
-                        access patterns.
-                    </p>
-                </div>
             </div>
         </div>
     </div>

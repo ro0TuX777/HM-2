@@ -1,6 +1,9 @@
-// /static/js/device_management/dm_device.js
 import { showError, showSuccess } from './dm_ui.js';
-import { deviceApi } from './services/dm_api.js';  // Keep the original path as it's correct
+import { deviceApi } from './services/dm_api.js';
+import { getSelectedDevice } from '../dm_state.js';
+
+// metrics update
+const METRICS_UPDATED_EVENT = 'metrics-updated';
 
 // Unique ID generator
 const generateId = () => `dev_${Math.random().toString(36).substr(2, 9)}`;
@@ -38,8 +41,14 @@ export class Device {
         this.layer = {
             physical: true,
             logical: true,
-            application: type === 'server' || type === 'client'
+            application: true // Allow all types to be visible in the Application layer
         };
+
+        // Start periodic metric updates with device-type specific ranges
+        this.metricUpdateInterval = setInterval(() => {
+            this.updateMetrics();
+            this.persistMetrics();
+        }, 30000);
     }
 
     generateMacAddress() {
@@ -63,14 +72,78 @@ export class Device {
     }
 
     updateMetrics() {
-        this.metrics = {
-            cpu: Math.floor(Math.random() * 100),
-            memory: Math.floor(Math.random() * 100),
-            disk: Math.floor(Math.random() * 100),
-            vulnerability: Math.floor(Math.random() * 100),
-            network: Math.floor(Math.random() * 1000),
-            temperature: 40 + Math.floor(Math.random() * 40)
+        const ranges = {
+            server: {
+                cpu: [30, 90],
+                memory: [40, 95],
+                disk: [20, 85],
+                vulnerability: [0, 60],
+                network: [200, 900],
+                temperature: [35, 75]
+            },
+            router: {
+                cpu: [20, 70],
+                memory: [30, 80],
+                disk: [10, 50],
+                vulnerability: [0, 40],
+                network: [500, 1000],
+                temperature: [30, 65]
+            },
+            switch: {
+                cpu: [10, 60],
+                memory: [20, 70],
+                disk: [5, 40],
+                vulnerability: [0, 30],
+                network: [600, 1000],
+                temperature: [25, 55]
+            },
+            client: {
+                cpu: [5, 100],
+                memory: [10, 100],
+                disk: [10, 95],
+                vulnerability: [0, 80],
+                network: [0, 500],
+                temperature: [30, 70]
+            },
+            workstation: {
+                cpu: [5, 100],
+                memory: [10, 100],
+                disk: [10, 95],
+                vulnerability: [0, 70],
+                network: [0, 400],
+                temperature: [30, 65]
+            }
         };
+
+        const deviceRanges = ranges[this.type] || ranges.workstation;
+        this.metrics = Object.entries(deviceRanges).reduce((acc, [key, [min, max]]) => {
+            acc[key] = min + Math.floor(Math.random() * (max - min));
+            return acc;
+        }, {});
+
+    // Add this section after the metrics calculation
+    try {
+        const selectedDevice = getSelectedDevice();
+        if (selectedDevice && selectedDevice.id === this.id) {
+            window.dispatchEvent(new CustomEvent(METRICS_UPDATED_EVENT, {
+                detail: { metrics: this.metrics }
+            }));
+        }
+    } catch (error) {
+        console.error('Error dispatching metrics update event:', error);
+    }
+}
+
+    async persistMetrics() {
+        try {
+            console.log(`[DEBUG] Starting metrics persistence for ${this.type} device ${this.name}`);
+            console.log(`[DEBUG] Current metrics:`, this.metrics);
+            
+            await deviceApi.updateMetrics(this.id, this.metrics);
+            console.log(`[DEBUG] Successfully updated metrics for ${this.type} device ${this.name}`);
+        } catch (error) {
+            console.error(`[ERROR] Failed to persist metrics for ${this.type} device ${this.name}:`, error);
+        }
     }
 
     updateConfiguration(config) {
@@ -187,6 +260,10 @@ export class Device {
             services: this.services,
             layer: this.layer
         };
+    }
+
+    cleanup() {
+        clearInterval(this.metricUpdateInterval);
     }
 }
 
