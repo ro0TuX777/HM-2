@@ -1,5 +1,4 @@
 // dm_events.js
-
 import {
     getState,
     setDragState,
@@ -21,7 +20,8 @@ import {
 } from './dm_canvas.js';
 
 import { showError, showSuccess } from './dm_ui.js';
-import { Device } from './dm_device.js';
+import { Device, addDeviceToDatabase } from './dm_device.js';
+
 
 // Debug flag for development
 const DEBUG = true;
@@ -141,7 +141,7 @@ function handleMouseUp() {
 }
 
 // Device management handlers
-function handleAddDevice(type) {
+async function handleAddDevice(type) {
     try {
         const state = getState();
         if (!state.initialized) {
@@ -153,22 +153,27 @@ function handleAddDevice(type) {
             throw new Error('Canvas not found');
         }
 
-        // Create device instance properly
         const deviceX = 50 + Math.random() * (canvas.width - 100);
         const deviceY = 50 + Math.random() * (canvas.height - 100);
-        const deviceName = `${type.charAt(0).toUpperCase() + type.slice(1)} ${
-            state.devices.length + 1
-        }`;
+        const deviceName = `${type.charAt(0).toUpperCase() + type.slice(1)} ${state.devices.length + 1}`;
 
-        // Create a Device instance
         const device = new Device(deviceX, deviceY, deviceName, type);
 
-        // Add to state
+        // First, persist the device to the database to get a numeric ID
+        const response = await addDeviceToDatabase(device);
+
+        // Update the device's ID with the numeric ID from the backend
+        if (response && response.device_id) {
+            device.id = response.device_id;
+        } else {
+            throw new Error('Failed to obtain numeric device_id from backend');
+        }
+
+        // Now that the device has a numeric ID, add it to the state
         addDevice(device);
+
         showSuccess('Device added successfully');
         drawAll();
-
-        // Select the newly added device
         setSelectedDevice(device);
     } catch (error) {
         showError(`Failed to add device: ${error.message}`);

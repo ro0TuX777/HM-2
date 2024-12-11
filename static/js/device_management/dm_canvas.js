@@ -55,33 +55,34 @@ function drawAll() {
         drawGrid(ctx, canvas);
 
         // Draw connections first
-        connections.forEach(connection => {
-            try {
-                if (connection.layer[currentLayer]) {
-                    connection.draw(ctx, currentLayer);
-                }
-            } catch (error) {
-                console.error('Error drawing connection:', error);
-            }
-        });
+connections.forEach(connection => {
+    try {
+        // If currentLayer is 'cip', show all connections regardless of their layer settings
+        if (currentLayer === 'cip' || connection.layer[currentLayer]) {
+            connection.draw(ctx, currentLayer);
+        }
+    } catch (error) {
+        console.error('Error drawing connection:', error);
+    }
+});
 
-        // Draw devices on top
-        devices.forEach(device => {
-            try {
-                if (device.layer[currentLayer]) {
-                    device.draw(ctx, currentLayer);
-                    // After device is drawn, draw Z-score indicators
-                    zscoreVisualizer.drawZScoreIndicators(ctx, device);
-                }
-            } catch (error) {
-                console.error('Error drawing device:', error);
-            }
-        });
-    } catch (error) {   // ← Add this catch block
+// Draw devices on top
+devices.forEach(device => {
+    try {
+        // If currentLayer is 'cip', show all devices regardless of their layer settings
+        if (currentLayer === 'cip' || device.layer[currentLayer]) {
+            device.draw(ctx, currentLayer);
+            zscoreVisualizer.drawZScoreIndicators(ctx, device);
+        }
+    } catch (error) {
+        console.error('Error drawing device:', error);
+    }
+});
+
+    } catch (error) {
         console.error('Error in drawAll:', error);
     }
 }
-
 
 // Helper function to get mouse position relative to canvas
 function getMousePosition(canvas, event) {

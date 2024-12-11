@@ -183,8 +183,12 @@ export class Device {
     }
 
     draw(ctx, currentLayer) {
-        if (!this.layer[currentLayer]) return;
-
+        // If the currentLayer is 'cip', draw regardless of device.layer settings
+        // Otherwise, fall back to the original logic.
+        if (currentLayer !== 'cip' && !this.layer[currentLayer]) {
+            return;
+        }
+    
         this.drawBody(ctx, currentLayer);
         this.drawText(ctx, currentLayer);
     }
@@ -278,6 +282,12 @@ export async function addDeviceToDatabase(device) {
 
         const response = await deviceApi.addDevice(deviceData);
         showSuccess('Device added successfully');
+
+        // Update the device's ID to the numeric ID returned by the backend
+        if (response.device_id) {
+            device.id = response.device_id;  // Assigning the numeric ID from the backend
+        }
+
         return response;
     } catch (error) {
         console.error('Error adding device:', error); // Debug log

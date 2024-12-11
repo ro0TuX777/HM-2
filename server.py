@@ -1,12 +1,13 @@
 from flask import Flask, send_from_directory, render_template, jsonify
 import os
 import logging
-from database import init_db  # Ensure init_db is called to set up the database
+from database import init_db
 
 # Import Blueprints
 from routes.device_management_DBroutes import device_management_db_bp
 from routes.cip_impact_routes import cip_impact_bp
 from routes.network_routes import network_viz_bp
+from blueprints.network_visualization import bp as network_visualization_bp
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -21,10 +22,11 @@ app = Flask(__name__,
 # Log when registering blueprints
 logger.debug("Registering blueprints...")
 
-# Register blueprints with '/api' prefix
+# Register blueprints
 app.register_blueprint(device_management_db_bp, url_prefix='/api')
 app.register_blueprint(cip_impact_bp, url_prefix='/api')
 app.register_blueprint(network_viz_bp, url_prefix='/api')
+app.register_blueprint(network_visualization_bp, url_prefix='/api')
 
 # Verify registration
 logger.debug("Registered routes:")

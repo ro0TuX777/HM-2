@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request
 from models.device_zscore import DeviceZScore
 from database import get_db_connection
 from contextlib import closing
-import traceback
 import logging
 import sqlite3
 
@@ -11,18 +10,21 @@ logger.setLevel(logging.DEBUG)
 
 bp = Blueprint('network_visualization', __name__)
 
-@bp.route('/network/topology', methods=['GET'])
+@bp.route('/network/topology/details', methods=['GET'])
 def get_network_topology():
     """Get network topology with device metrics and Z-scores."""
     try:
         with closing(get_db_connection()) as conn:
             conn.row_factory = sqlite3.Row
+            # Modified query to ensure we only get devices with valid analysis results
             devices = conn.execute('''
                 SELECT d.*, m.cpu_usage, m.memory_usage, m.disk_usage, m.vulnerability_score,
                        a.zscore_cpu, a.zscore_memory, a.zscore_disk, a.zscore_vulnerability,
-                       a.device_state
+                       a.device_state,
+                       COUNT(DISTINCT m2.id) as metric_count
                 FROM network_devices d
                 LEFT JOIN device_metrics m ON d.id = m.device_id
+                LEFT JOIN device_metrics m2 ON d.id = m2.device_id  -- For counting total metrics
                 LEFT JOIN device_analysis_results a ON d.id = a.device_id
                 WHERE m.id IN (
                     SELECT MAX(id) 
@@ -34,6 +36,8 @@ def get_network_topology():
                     FROM device_analysis_results
                     GROUP BY device_id
                 )
+                GROUP BY d.id
+                HAVING metric_count > 0  -- Ensure we have at least some metrics
             ''').fetchall()
             
             zscore_analyzer = DeviceZScore()
@@ -42,6 +46,38 @@ def get_network_topology():
             }
 
             for device in devices:
+                # Initialize zscores structure with default values
+                zscores_data = {
+                    'cpu_usage': {
+                        'zscore': device['zscore_cpu'],
+                        'status': get_zscore_status(device['zscore_cpu'])
+                    },
+                    'memory_usage': {
+                        'zscore': device['zscore_memory'],
+                        'status': get_zscore_status(device['zscore_memory'])
+                    },
+                    'disk_usage': {
+                        'zscore': device['zscore_disk'],
+                        'status': get_zscore_status(device['zscore_disk'])
+                    },
+                    'vulnerability_score': {
+                        'zscore': device['zscore_vulnerability'],
+                        'status': get_zscore_status(device['zscore_vulnerability'])
+                    }
+                }
+
+                # Get comprehensive Z-score analysis
+                analysis = zscore_analyzer.analyze_device(device['id'])
+                
+                # Add zscore_mean if analysis is available
+                if analysis and 'zscore_mean' in analysis:
+                    zscores_data['zscore_mean'] = {
+                        'zscore': analysis['zscore_mean']['zscore'],
+                        'status': analysis['zscore_mean']['status'],
+                        'component_scores': analysis['zscore_mean'].get('component_scores', []),
+                        'metric_count': analysis['zscore_mean'].get('metric_count', 0)
+                    }
+
                 device_data = {
                     'id': device['id'],
                     'name': device['name'],
@@ -52,48 +88,20 @@ def get_network_topology():
                         'disk_usage': device['disk_usage'] if device['disk_usage'] is not None else 0,
                         'vulnerability_score': device['vulnerability_score'] if device['vulnerability_score'] is not None else 0
                     },
-                    'zscores': {
-                        'cpu_usage': {
-                            'zscore': device['zscore_cpu'],
-                            'status': get_zscore_status(device['zscore_cpu'])
-                        },
-                        'memory_usage': {
-                            'zscore': device['zscore_memory'],
-                            'status': get_zscore_status(device['zscore_memory'])
-                        },
-                        'disk_usage': {
-                            'zscore': device['zscore_disk'],
-                            'status': get_zscore_status(device['zscore_disk'])
-                        },
-                        'vulnerability_score': {
-                            'zscore': device['zscore_vulnerability'],
-                            'status': get_zscore_status(device['zscore_vulnerability'])
-                        }
-                    } if device['zscore_cpu'] is not None else None,
+                    'zscores': zscores_data if any(
+                        device[f'zscore_{metric}'] is not None 
+                        for metric in ['cpu', 'memory', 'disk', 'vulnerability']
+                    ) else None,
                     'state': device['device_state']
                 }
 
-                # Get comprehensive Z-score analysis including mean
-                analysis = zscore_analyzer.analyze_device(device['id'])
                 if analysis:
-                    # Add the analysis to the device data
                     device_data['analysis'] = analysis
-                    
-                    # Add zscore_mean to zscores if available
-                    if 'zscore_mean' in analysis and device_data['zscores']:
-                        device_data['zscores']['zscore_mean'] = {
-                            'zscore': analysis['zscore_mean']['zscore'],
-                            'status': analysis['zscore_mean']['status'],
-                            'component_scores': analysis['zscore_mean'].get('component_scores', []),
-                            'metric_count': analysis['zscore_mean'].get('metric_count', 0)
-                        }
 
                 topology['devices'].append(device_data)
 
             return jsonify(topology)
     except Exception as e:
-        print("Error in get_network_topology:", str(e))
-        traceback.print_exc()  # Prints the full traceback
         logger.exception("Exception in get_network_topology route:")
         return jsonify({'error': str(e)}), 500
 
@@ -112,7 +120,7 @@ def get_zscore_status(zscore):
     else:
         return 'extreme'
 
-@bp.route('/api/device/<int:device_id>/zscores', methods=['GET'])
+@bp.route('/device/<int:device_id>/zscores', methods=['GET'])
 def get_device_zscores(device_id):
     """Get Z-score analysis for a specific device."""
     try:

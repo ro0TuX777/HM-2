@@ -159,11 +159,9 @@ export const deviceApi = {
     addDevice: (deviceData) => {
         debug('Adding device:', deviceData);
         validators.device(deviceData);
-        return apiCall('/devices', {
+        return apiCall('/add_device', {
             method: 'POST',
             body: JSON.stringify(deviceData)
-
-    
         });
     },
  
@@ -218,12 +216,12 @@ export const deviceApi = {
 
 // Connection API Calls
 export const connectionApi = {
-    getAllConnections: () => apiCall('/api/connections'),
+    getAllConnections: () => apiCall('/connections'),
 
     addConnection: (connectionData) => {
         debug('Adding connection:', connectionData);
         validators.connection(connectionData);
-        return apiCall('/api/connections', {
+        return apiCall('/connections', {
             method: 'POST',
             body: JSON.stringify(connectionData)
         });
@@ -232,7 +230,7 @@ export const connectionApi = {
     updateConnection: (connectionId, connectionData) => {
         debug('Updating connection:', connectionId, connectionData);
         if (!connectionId) throw new Error('Connection ID is required');
-        return apiCall(`/api/connections/${connectionId}`, {
+        return apiCall(`/connections/${connectionId}`, {
             method: 'PUT',
             body: JSON.stringify(connectionData)
         });
@@ -241,7 +239,7 @@ export const connectionApi = {
     removeConnection: (connectionId) => {
         debug('Removing connection:', connectionId);
         if (!connectionId) throw new Error('Connection ID is required');
-        return apiCall(`/api/connections/${connectionId}`, {
+        return apiCall(`/connections/${connectionId}`, {
             method: 'DELETE'
         });
     }

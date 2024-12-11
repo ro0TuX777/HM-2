@@ -5,7 +5,7 @@ from utils.validation import validate_request_data, format_error
 
 network_viz_bp = Blueprint('network_routes', __name__)
 
-@network_viz_bp.route('/api/connections', methods=['POST'])
+@network_viz_bp.route('/connections', methods=['POST'])
 def add_connection():
     """
     Route to add a new connection.
@@ -26,21 +26,37 @@ def add_connection():
     # Replace with database logic as needed
     return jsonify({'message': 'Connection added successfully', 'connection': connection}), 201
 
-@network_viz_bp.route('/api/network/topology/details', methods=['GET'])
+@network_viz_bp.route('/network/topology/details', methods=['GET'])
 def get_topology_details():
     """
     Route to retrieve detailed network topology information.
     """
     # Example detailed topology data
     detailed_topology_data = {
-        'devices': [
-            {'id': 1, 'name': 'Device 1', 'type': 'Router', 'ip': '192.168.1.1'},
-            {'id': 2, 'name': 'Device 2', 'type': 'Switch', 'ip': '192.168.1.2'}
-        ],
-        'connections': [
-            {'source': 1, 'target': 2, 'type': 'ethernet', 'bandwidth': '1Gbps'}
-        ]
-    }
+    'devices': [
+        {
+            'id': 1,
+            'name': 'Device 1',
+            'type': 'Router',
+            'ip': '192.168.1.1',
+            'zscores': {
+                'cpu_usage': {'zscore': 1.2, 'status': 'warning'}
+            }
+        },
+        {
+            'id': 2,
+            'name': 'Device 2',
+            'type': 'Switch',
+            'ip': '192.168.1.2',
+            'zscores': {
+                'cpu_usage': {'zscore': 0.5, 'status': 'normal'}
+            }
+        }
+    ],
+    'connections': [
+        {'source': 1, 'target': 2, 'type': 'ethernet', 'bandwidth': '1Gbps'}
+    ]
+}
     return jsonify(detailed_topology_data)
 
 @network_viz_bp.route('/adjusted_metrics', methods=['POST'])

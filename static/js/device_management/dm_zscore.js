@@ -51,45 +51,53 @@ export class ZScoreVisualizer {
         try {
             const state = getState();
             if (!state.initialized) return;
-
-            const response = await fetch('/api/network/topology');
+    
+            const response = await fetch('/api/network/topology/details');
             if (!response.ok) {
                 throw new Error('Failed to fetch network topology');
             }
             
             const topology = await response.json();
-
-            // Update device colors based on Z-scores
+    
+            // Update device colors based on selected metric
             topology.devices.forEach(deviceData => {
                 const device = state.devices.find(d => d.id === deviceData.id);
                 if (device && deviceData.zscores) {
-                    const metricData = deviceData.zscores[this.selectedMetric];
+                    let metricData = deviceData.zscores[this.selectedMetric];
+    
+                    // If the selected metric is zscore_mean, ensure it's present
+                    if (this.selectedMetric === 'zscore_mean' && !metricData) {
+                        console.warn(`zscore_mean not found for device ID ${deviceData.id}. Ensure backend returns zscore_mean data.`);
+                        return;
+                    }
+    
                     if (metricData) {
                         device.zscoreData = metricData;
                         device.color = this.getZScoreColor(metricData.zscore);
-                        
-                        // Update status color based on Z-score status
+    
+                        // Update status color based on Z-score status if present
                         if (metricData.status) {
                             device.color = this.statusColors[metricData.status];
                         }
                     }
                 }
             });
-
-            // Subscribe to state changes that require redrawing
+    
+            // Subscribe to state changes that require redrawing if not already done
             subscribeToState(
                 [EVENTS.DEVICE_UPDATED, EVENTS.LAYER_CHANGED],
                 () => {
                     drawAll();
                 }
             );
-
+    
             // Trigger immediate redraw
             drawAll();
         } catch (error) {
             console.error('Error updating Z-score visualization:', error);
         }
     }
+    
 
     getZScoreColor(zscore) {
         const absScore = Math.abs(zscore);

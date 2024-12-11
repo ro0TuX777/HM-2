@@ -80,7 +80,7 @@ export function initializeState(canvas, ctx) {
 }
 
 export function setCurrentLayer(layer) {
-    if (!['physical', 'logical', 'application'].includes(layer)) {
+    if (!['physical', 'logical', 'application', 'cip'].includes(layer)) {
         console.error('Invalid layer:', layer);
         return;
     }

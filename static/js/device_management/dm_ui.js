@@ -78,8 +78,8 @@ const UI = {
 // Connection handling functions
 async function handleAddConnection() {
     try {
-        const sourceId = UI.deviceLists.source?.value;
-        const targetId = UI.deviceLists.target?.value;
+        const sourceId = Number(UI.deviceLists.source?.value);
+        const targetId = Number(UI.deviceLists.target?.value);
         const type = UI.selects.connectionType?.value;
         const bandwidth = parseInt(UI.inputs.bandwidth?.value);
 

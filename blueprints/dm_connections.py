@@ -7,7 +7,7 @@ from database import get_db_connection  # Updated import to match database.py
 dm_connections_bp = Blueprint('dm_connections', __name__)
 
 # Route to get all connections
-@dm_connections_bp.route('/api/connections', methods=['GET'])
+@dm_connections_bp.route('/connections', methods=['GET'])
 def get_connections():
     with get_db_connection() as db:
         cursor = db.execute('SELECT * FROM connections')
@@ -16,44 +16,46 @@ def get_connections():
     return jsonify(connections_list)
 
 # Route to add a new connection
-@dm_connections_bp.route('/api/connections', methods=['POST'])
+@dm_connections_bp.route('/connections', methods=['POST'])
 def add_connection():
     data = request.get_json()
-    start_device = data.get('start_device')
-    end_device = data.get('end_device')
+    source_device = data.get('source_device_id')
+    target_device = data.get('target_device_id')
     type_ = data.get('type')
     bandwidth = data.get('bandwidth')
 
-    if not all([start_device, end_device, type_]):
+    if not all([source_device, target_device, type_]):
         return jsonify({'error': 'Missing required fields'}), 400
 
     with get_db_connection() as db:
         db.execute('''
             INSERT INTO connections (start_device, end_device, type, bandwidth)
             VALUES (?, ?, ?, ?)
-        ''', (start_device, end_device, type_, bandwidth))
+        ''', (source_device, target_device, type_, bandwidth))
         db.commit()
     return jsonify({'message': 'Connection added successfully'}), 201
 
 # Route to delete a connection
-@dm_connections_bp.route('/api/connections', methods=['DELETE'])
+@dm_connections_bp.route('/connections', methods=['DELETE'])
 def delete_connection():
     data = request.get_json()
-    start_device = data.get('start_device')
-    end_device = data.get('end_device')
+    source_device = data.get('source_device_id')
+    target_device = data.get('target_device_id')
 
-    if not all([start_device, end_device]):
+    if not all([source_device, target_device]):
         return jsonify({'error': 'Missing required fields'}), 400
 
     with get_db_connection() as db:
         db.execute('''
             DELETE FROM connections WHERE start_device = ? AND end_device = ?
-        ''', (start_device, end_device))
+        ''', (source_device, target_device))
         db.commit()
     return jsonify({'message': 'Connection deleted successfully'}), 200
 
+
+
 # Route to get connections for a specific device
-@dm_connections_bp.route('/api/connections/<device_name>', methods=['GET'])
+@dm_connections_bp.route('/connections/<device_name>', methods=['GET'])
 def get_connections_for_device(device_name):
     with get_db_connection() as db:
         cursor = db.execute('''
