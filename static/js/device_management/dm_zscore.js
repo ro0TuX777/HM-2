@@ -13,6 +13,9 @@ export class ZScoreVisualizer {
         };
         this.initialized = false;
         this.setupEventListeners();
+
+        // Periodically refresh the visualization to reflect changes as new data arrives
+        this.setupPeriodicRefresh();
     }
 
     setupEventListeners() {
@@ -47,17 +50,27 @@ export class ZScoreVisualizer {
         }
     }
 
+    setupPeriodicRefresh() {
+        // Refresh every 10 seconds to pull new data and update visuals
+        setInterval(() => {
+            this.updateVisualization();
+        }, 10000);
+    }
+
     async updateVisualization() {
         try {
             const state = getState();
             if (!state.initialized) return;
-    
+
             const response = await fetch('/api/network/topology/details');
             if (!response.ok) {
                 throw new Error('Failed to fetch network topology');
             }
             
             const topology = await response.json();
+            
+            // Debug log to inspect the topology data and verify if zscore_mean is present
+            console.log('Topology data:', topology);
     
             // Update device colors based on selected metric
             topology.devices.forEach(deviceData => {
@@ -80,24 +93,30 @@ export class ZScoreVisualizer {
                             device.color = this.statusColors[metricData.status];
                         }
                     }
+                } else if (device) {
+                    // If no zscores for this device or selected metric, clear zscoreData
+                    device.zscoreData = null;
                 }
             });
     
-            // Subscribe to state changes that require redrawing if not already done
-            subscribeToState(
-                [EVENTS.DEVICE_UPDATED, EVENTS.LAYER_CHANGED],
-                () => {
-                    drawAll();
-                }
-            );
-    
+            // If not already subscribed, subscribe to state changes that require redrawing
+            // We check this.initialized to avoid multiple subscriptions
+            if (!this.initialized) {
+                subscribeToState(
+                    [EVENTS.DEVICE_UPDATED, EVENTS.LAYER_CHANGED],
+                    () => {
+                        drawAll();
+                    }
+                );
+                this.initialized = true;
+            }
+
             // Trigger immediate redraw
             drawAll();
         } catch (error) {
             console.error('Error updating Z-score visualization:', error);
         }
     }
-    
 
     getZScoreColor(zscore) {
         const absScore = Math.abs(zscore);

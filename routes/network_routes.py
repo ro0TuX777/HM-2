@@ -26,39 +26,6 @@ def add_connection():
     # Replace with database logic as needed
     return jsonify({'message': 'Connection added successfully', 'connection': connection}), 201
 
-@network_viz_bp.route('/network/topology/details', methods=['GET'])
-def get_topology_details():
-    """
-    Route to retrieve detailed network topology information.
-    """
-    # Example detailed topology data
-    detailed_topology_data = {
-    'devices': [
-        {
-            'id': 1,
-            'name': 'Device 1',
-            'type': 'Router',
-            'ip': '192.168.1.1',
-            'zscores': {
-                'cpu_usage': {'zscore': 1.2, 'status': 'warning'}
-            }
-        },
-        {
-            'id': 2,
-            'name': 'Device 2',
-            'type': 'Switch',
-            'ip': '192.168.1.2',
-            'zscores': {
-                'cpu_usage': {'zscore': 0.5, 'status': 'normal'}
-            }
-        }
-    ],
-    'connections': [
-        {'source': 1, 'target': 2, 'type': 'ethernet', 'bandwidth': '1Gbps'}
-    ]
-}
-    return jsonify(detailed_topology_data)
-
 @network_viz_bp.route('/adjusted_metrics', methods=['POST'])
 def adjusted_metrics():
     """

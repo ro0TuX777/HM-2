@@ -10,43 +10,51 @@ logger.setLevel(logging.DEBUG)
 
 bp = Blueprint('network_visualization', __name__)
 
+def get_zscore_status(zscore):
+    """Determine status based on Z-score magnitude."""
+    if zscore is None:
+        return None
+    
+    abs_zscore = abs(zscore)
+    if abs_zscore <= 1:
+        return 'normal'
+    elif abs_zscore <= 2:
+        return 'warning'
+    elif abs_zscore <= 3:
+        return 'critical'
+    else:
+        return 'extreme'
+
 @bp.route('/network/topology/details', methods=['GET'])
 def get_network_topology():
     """Get network topology with device metrics and Z-scores."""
     try:
         with closing(get_db_connection()) as conn:
             conn.row_factory = sqlite3.Row
-            # Modified query to ensure we only get devices with valid analysis results
+
+            # This query selects devices and their metrics from the 'devices' table.
+            # If there's analysis data in device_analysis_results, it will join it.
+            # Otherwise, a.* will be NULL, but the device will still be returned.
             devices = conn.execute('''
-                SELECT d.*, m.cpu_usage, m.memory_usage, m.disk_usage, m.vulnerability_score,
+                SELECT d.id, d.name, d.ip_address,
+                       d.cpu_usage, d.memory_usage, d.disk_usage, d.vulnerability_score,
                        a.zscore_cpu, a.zscore_memory, a.zscore_disk, a.zscore_vulnerability,
-                       a.device_state,
-                       COUNT(DISTINCT m2.id) as metric_count
-                FROM network_devices d
-                LEFT JOIN device_metrics m ON d.id = m.device_id
-                LEFT JOIN device_metrics m2 ON d.id = m2.device_id  -- For counting total metrics
+                       a.device_state
+                FROM devices d
                 LEFT JOIN device_analysis_results a ON d.id = a.device_id
-                WHERE m.id IN (
-                    SELECT MAX(id) 
-                    FROM device_metrics 
-                    GROUP BY device_id
-                )
                 AND a.id IN (
                     SELECT MAX(id)
                     FROM device_analysis_results
                     GROUP BY device_id
                 )
-                GROUP BY d.id
-                HAVING metric_count > 0  -- Ensure we have at least some metrics
             ''').fetchall()
-            
+
             zscore_analyzer = DeviceZScore()
             topology = {
                 'devices': []
             }
 
             for device in devices:
-                # Initialize zscores structure with default values
                 zscores_data = {
                     'cpu_usage': {
                         'zscore': device['zscore_cpu'],
@@ -66,10 +74,11 @@ def get_network_topology():
                     }
                 }
 
-                # Get comprehensive Z-score analysis
+                # Analyze device if possible
                 analysis = zscore_analyzer.analyze_device(device['id'])
-                
-                # Add zscore_mean if analysis is available
+                logger.debug(f"DEBUG: Analysis for device {device['id']}:", analysis)
+
+                # Add zscore_mean if available
                 if analysis and 'zscore_mean' in analysis:
                     zscores_data['zscore_mean'] = {
                         'zscore': analysis['zscore_mean']['zscore'],
@@ -77,6 +86,15 @@ def get_network_topology():
                         'component_scores': analysis['zscore_mean'].get('component_scores', []),
                         'metric_count': analysis['zscore_mean'].get('metric_count', 0)
                     }
+
+                # Determine if Z-scores are present
+                zs_present = (
+                    (device['zscore_cpu'] is not None or 
+                     device['zscore_memory'] is not None or 
+                     device['zscore_disk'] is not None or 
+                     device['zscore_vulnerability'] is not None) 
+                    or ('zscore_mean' in zscores_data)
+                )
 
                 device_data = {
                     'id': device['id'],
@@ -88,10 +106,7 @@ def get_network_topology():
                         'disk_usage': device['disk_usage'] if device['disk_usage'] is not None else 0,
                         'vulnerability_score': device['vulnerability_score'] if device['vulnerability_score'] is not None else 0
                     },
-                    'zscores': zscores_data if any(
-                        device[f'zscore_{metric}'] is not None 
-                        for metric in ['cpu', 'memory', 'disk', 'vulnerability']
-                    ) else None,
+                    'zscores': zscores_data if zs_present else None,
                     'state': device['device_state']
                 }
 
@@ -104,21 +119,6 @@ def get_network_topology():
     except Exception as e:
         logger.exception("Exception in get_network_topology route:")
         return jsonify({'error': str(e)}), 500
-
-def get_zscore_status(zscore):
-    """Determine status based on Z-score magnitude."""
-    if zscore is None:
-        return None
-    
-    abs_zscore = abs(zscore)
-    if abs_zscore <= 1:
-        return 'normal'
-    elif abs_zscore <= 2:
-        return 'warning'
-    elif abs_zscore <= 3:
-        return 'critical'
-    else:
-        return 'extreme'
 
 @bp.route('/device/<int:device_id>/zscores', methods=['GET'])
 def get_device_zscores(device_id):

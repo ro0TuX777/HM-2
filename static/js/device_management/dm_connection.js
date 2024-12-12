@@ -29,42 +29,46 @@ class Connection {
     }
 
     draw(ctx, currentLayer) {
-        if (!this.layer[currentLayer]) return;
-
+        // If currentLayer is 'cip', draw the connection regardless of connection.layer settings
+        // Otherwise, proceed with the original check
+        if (currentLayer !== 'cip' && !this.layer[currentLayer]) {
+            return;
+        }
+    
         // Update port positions based on current device positions
         const startPort = this.startDevice.getNearestPort(this.endDevice.x, this.endDevice.y);
         const endPort = this.endDevice.getNearestPort(this.startDevice.x, this.startDevice.y);
-
+    
         // Update stored ports
         this.startPort = startPort;
         this.endPort = endPort;
-
+    
         // Get style for current connection type
         const style = this.styles[this.type] || this.styles.ethernet;
-
+    
         // Draw connection line
         ctx.beginPath();
         ctx.moveTo(startPort.x, startPort.y);
         ctx.lineTo(endPort.x, endPort.y);
-
+    
         ctx.strokeStyle = style.color;
         ctx.setLineDash(style.dash);
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.setLineDash([]); // Reset line dash
-
+    
         // Draw bandwidth label if in logical layer
         if (currentLayer === 'logical' && this.bandwidth) {
             const midX = (startPort.x + endPort.x) / 2;
             const midY = (startPort.y + endPort.y) / 2;
-
+    
             ctx.font = '12px Arial';
             ctx.fillStyle = '#333';
             ctx.textAlign = 'center';
             ctx.fillText(`${this.bandwidth} Mbps`, midX, midY - 10);
         }
     }
-
+    
     toJSON() {
         return {
             id: this.id,

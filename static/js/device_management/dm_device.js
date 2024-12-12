@@ -48,7 +48,7 @@ export class Device {
         this.metricUpdateInterval = setInterval(() => {
             this.updateMetrics();
             this.persistMetrics();
-        }, 30000);
+        }, 10000);
     }
 
     generateMacAddress() {
@@ -74,27 +74,27 @@ export class Device {
     updateMetrics() {
         const ranges = {
             server: {
-                cpu: [30, 90],
-                memory: [40, 95],
-                disk: [20, 85],
+                cpu: [0, 100],
+                memory: [5, 95],
+                disk: [10, 100],
                 vulnerability: [0, 60],
                 network: [200, 900],
                 temperature: [35, 75]
             },
             router: {
-                cpu: [20, 70],
-                memory: [30, 80],
-                disk: [10, 50],
-                vulnerability: [0, 40],
-                network: [500, 1000],
+                cpu: [0, 100],
+                memory: [5, 95],
+                disk: [10, 100],
+                vulnerability: [0, 90],
+                network: [200, 900],
                 temperature: [30, 65]
             },
             switch: {
-                cpu: [10, 60],
-                memory: [20, 70],
-                disk: [5, 40],
-                vulnerability: [0, 30],
-                network: [600, 1000],
+                cpu: [0, 100],
+                memory: [5, 95],
+                disk: [10, 100],
+                vulnerability: [0, 90],
+                network: [200, 900],
                 temperature: [25, 55]
             },
             client: {
