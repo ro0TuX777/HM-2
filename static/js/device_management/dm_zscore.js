@@ -127,34 +127,36 @@ export class ZScoreVisualizer {
     }
 
     drawZScoreIndicators(ctx, device) {
-        if (!device.zscoreData) return;
+        // If there's no zscoreData or if zscore is null/undefined, return early
+        if (!device.zscoreData || device.zscoreData.zscore == null) {
+            return;
+        }
     
-        // Calculate device center if not already centered
+        // Calculate device center
         const deviceCenterX = device.x + (device.width / 2);
         const deviceCenterY = device.y + (device.height / 2);
     
-        // Compute a radius if the device object doesn't have one
         const radius = device.radius || Math.min(device.width, device.height) / 2;
     
-        // Draw Z-score value with metric name
         ctx.fillStyle = '#000000';
         ctx.font = '12px Arial';
         const metricDisplay = this.selectedMetric.replace('_', ' ').toUpperCase();
-        // Place text above device center
+    
+        // Use toFixed only if we have a valid number
+        const zscoreValue = device.zscoreData.zscore.toFixed(2); 
+    
         ctx.fillText(
-            `${metricDisplay}: ${device.zscoreData.zscore.toFixed(2)}`,
+            `${metricDisplay}: ${zscoreValue}`,
             deviceCenterX + 15,
             deviceCenterY - (radius + 20)
         );
     
-        // Draw status indicator ring around device
         ctx.beginPath();
         ctx.arc(deviceCenterX, deviceCenterY, radius + 5, 0, 2 * Math.PI);
         ctx.strokeStyle = device.color || this.statusColors[device.zscoreData.status];
         ctx.lineWidth = 2;
         ctx.stroke();
     
-        // Add status label if available
         if (device.zscoreData.status) {
             ctx.font = '10px Arial';
             ctx.fillText(
