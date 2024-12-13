@@ -25,10 +25,10 @@
    }
    #error-container { background-color: #f44336; color: white; }
    #success-container { background-color: #4CAF50; color: white; }
-   
+
    details[open] summary::after { content: "▲"; float: right; }
    details summary::after { content: "▼"; float: right; }
-   
+
    .layer-toggle, .action-button {
        padding: 0.5rem 1rem;
        font-size: 1rem;
@@ -37,22 +37,22 @@
        white-space: nowrap;
        min-width: 120px;
    }
-   
+
    .layer-toggle.active { background-color: #4CAF50; color: white; }
-   
+
    .connection-type-indicator {
        display: flex;
        align-items: center;
        margin-bottom: 4px;
    }
-   
+
    .connection-line {
        display: inline-block;
        width: 20px;
        height: 2px;
        margin-right: 8px;
    }
-   
+
    .ethernet-line { background-color: #4CAF50; }
    .fiber-line { background-color: #2196F3; }
    .vpn-line {
@@ -63,22 +63,29 @@
        background-image: linear-gradient(to right, #9C27B0 25%, transparent 25%);
        background-size: 4px 100%;
    }
-   
+
    .canvas-container {
     @apply w-full max-w-6xl mx-auto;
-    background: #ffffff;  /* Changed from #1a1a1a to #ffffff */
+    background: #ffffff;
     padding: 1.5rem;
     border-radius: 0.75rem;
-    box-shadow: 
+    box-shadow:
         0 0 0 4px #333,
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-   
+   }
+
    #networkCanvas {
        @apply bg-white rounded-lg;
    }
-   
+
+   /* By default, keep the physical map hidden */
+   #physicalMapContainer {
+       width: 100%;
+       height: 400px;
+       display: none;
+   }
+
    select, input[type="text"], input[type="number"] {
        @apply w-full max-w-md mx-auto block rounded border px-2 py-1;
        min-width: 200px;
@@ -95,14 +102,16 @@
             <!-- Canvas Section -->
             <div class="mb-8">
                 <div class="canvas-container">
+                    <!-- Existing Canvas for Network -->
                     <canvas id="networkCanvas" width="1800" height="400" class="w-full"></canvas>
+                    <!-- New Div for Physical Map -->
+                    <div id="physicalMapContainer"></div>
                 </div>
                 <div class="flex flex-wrap gap-2 mt-4">
                     <button class="layer-toggle active" data-layer="physical">Physical Layer</button>
                     <button class="layer-toggle" data-layer="logical">Logical Layer</button>
                     <button class="layer-toggle" data-layer="application">Application Layer</button>
                     <button class="layer-toggle px-3 py-1 text-sm rounded bg-gray-300 hover:bg-gray-400 transition-colors" data-layer="cip">CIP Layer</button>
-
                 </div>
             </div>
 
@@ -178,18 +187,7 @@
                                 <label class="block font-semibold text-sm text-gray-600">CPU Usage</label>
                                 <div id="cpuValue" class="text-xl font-bold text-blue-600">0%</div>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded">
-                                <label class="block font-semibold text-sm text-gray-600">Memory Usage</label>
-                                <div id="memoryValue" class="text-xl font-bold text-green-600">0%</div>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded">
-                                <label class="block font-semibold text-sm text-gray-600">Disk Usage</label>
-                                <div id="diskValue" class="text-xl font-bold text-yellow-600">0%</div>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded">
-                                <label class="block font-semibold text-sm text-gray-600">Vulnerability Score</label>
-                                <div id="vulnerabilityValue" class="text-xl font-bold text-red-600">0%</div>
-                            </div>
+                            <!-- ... Other metrics blocks ... -->
                         </div>
 
                         <div class="bg-gray-100 p-3 rounded">

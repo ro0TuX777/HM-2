@@ -233,17 +233,20 @@ export class Device {
     }
 
     getFillColor(layer) {
-        switch (layer) {
-            case 'physical':
-                return 'white';
-            case 'logical':
-                return this.type === 'router' ? '#ffeb3b' :
-                       this.type === 'switch' ? '#4caf50' : 'white';
-            case 'application':
-                return this.type === 'server' ? '#2196f3' :
-                       this.type === 'client' ? '#ff9800' : 'white';
+        // Using hex with alpha channel - 59 represents ~35% opacity
+        switch (this.type) {
+            case 'workstation':
+                return '#6221C459';  // Purple with 35% opacity
+            case 'server':
+                return '#C4218359';  // Pink with 35% opacity
+            case 'client':
+                return '#C4622159';  // Orange with 35% opacity
+            case 'router':
+                return '#E2D13659';  // Yellow with 35% opacity
+            case 'switch':
+                return '#22C3B359';  // Cyan with 35% opacity
             default:
-                return 'white';
+                return '#FFFFFF00';  // White with 0% opacity
         }
     }
 
