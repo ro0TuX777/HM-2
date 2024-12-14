@@ -196,3 +196,9 @@ input[type="text"]:focus, input[type="number"]:focus {
     visibility: visible;
     opacity: 1;
 }
+
+/* Additional styling for the physical map container */
+#physicalMapContainer {
+    width: 100%;
+    height: 400px;
+}

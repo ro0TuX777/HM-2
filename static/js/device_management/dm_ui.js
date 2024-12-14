@@ -482,7 +482,36 @@ function updateUI() {
     } else {
         clearDeviceConfig();
     }
+
+    // Now handle layer-specific visibility
+    const physicalMapContainer = document.getElementById('physicalMapContainer');
+    const networkCanvas = document.getElementById('networkCanvas');
+
+    if (state.currentLayer === 'physical') {
+        networkCanvas.style.display = 'none';
+        physicalMapContainer.style.display = 'block';
+
+        // Initialize Leaflet map if not already initialized
+        if (!window.myLeafletMap) {
+            // Make sure leaflet.js is included in the HTML head:
+            // <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            // Leaflet CSS is already included (leaflet.css)
+
+            window.myLeafletMap = L.map('physicalMapContainer').setView([40.7128, -74.0060], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(window.myLeafletMap);
+        } else {
+            // If already initialized, invalidateSize to ensure proper rendering
+            setTimeout(() => { window.myLeafletMap.invalidateSize(); }, 200);
+        }
+    } else {
+        physicalMapContainer.style.display = 'none';
+        networkCanvas.style.display = 'block';
+    }
 }
+
 
 function clearDeviceConfig() {
     UI.inputs.deviceName.value = '';

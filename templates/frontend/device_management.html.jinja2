@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css') }}">
+<!-- Add Leaflet JS before any dependent scripts -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha256-rg1z5FS8IFJrC50Mztx6yfN2C6Z6pXPOVP7tuj0otfU=" crossorigin=""></script>
+        
 {% endblock %}
 
 {% block title %}Device Management Page{% endblock %}
