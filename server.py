@@ -53,31 +53,29 @@ def debug_routes():
 # After request handler (only one definition)
 @app.after_request
 def after_request(response):
-    """Add CORS headers after each request and set CSP."""
     # CORS headers
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     
-    # Add a Content Security Policy header:
-    # This is an example configuration; adjust as needed:
-    # - 'self' allows local resources
-    # - 'unsafe-inline' for inline styles if needed (as you currently have)
-    # - 'unsafe-eval' for cases where eval-like functions are necessary (Leaflet generally doesn't require this, so consider removing if not needed)
-    # - *.tile.openstreetmap.org allows Leaflet to load map tiles
-    # - data: in img-src to allow base64 images if needed by Leaflet markers
+    # Adjusted CSP:
+    # - Use wildcard for OSM tiles
+    # - Add 'unsafe-eval' only if absolutely required by your libraries
     response.headers['Content-Security-Policy'] = (
-    "default-src 'self'; "
-    "script-src 'self'; "
-    "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
-    "img-src 'self' data: https://*.tile.openstreetmap.org; "
-    "connect-src 'self'; "
-    "font-src 'self'; "
-    "object-src 'none'; "
-    "media-src 'self'; "
-    "frame-ancestors 'self'; "
-    "base-uri 'self'; "
-    "form-action 'self'; "
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-eval'; "  # Added unsafe-eval
+        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: "
+        "https://a.tile.openstreetmap.org "  # OSM tile servers
+        "https://b.tile.openstreetmap.org "
+        "https://c.tile.openstreetmap.org; "
+        "connect-src 'self'; "
+        "font-src 'self'; "
+        "object-src 'none'; "
+        "media-src 'self'; "
+        "frame-ancestors 'self'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
 )
 
     return response
