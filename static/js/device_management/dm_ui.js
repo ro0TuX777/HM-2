@@ -490,15 +490,17 @@ function updateUI() {
     if (state.currentLayer === 'physical') {
         networkCanvas.style.display = 'none';
         physicalMapContainer.style.display = 'block';
-
+    
+        // Check if L is available
+        if (typeof window.L === 'undefined' || typeof window.L.map !== 'function') {
+            console.error('Leaflet is not available. Cannot initialize map.');
+            return;
+        }
+    
         // Initialize Leaflet map if not already initialized
         if (!window.myLeafletMap) {
-            // Make sure leaflet.js is included in the HTML head:
-            // <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-            // Leaflet CSS is already included (leaflet.css)
-
-            window.myLeafletMap = L.map('physicalMapContainer').setView([40.7128, -74.0060], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            window.myLeafletMap = window.L.map('physicalMapContainer').setView([40.7128, -74.0060], 13);
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '© OpenStreetMap'
             }).addTo(window.myLeafletMap);
@@ -510,6 +512,7 @@ function updateUI() {
         physicalMapContainer.style.display = 'none';
         networkCanvas.style.display = 'block';
     }
+    
 }
 
 
