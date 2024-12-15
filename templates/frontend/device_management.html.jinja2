@@ -116,6 +116,14 @@
                     <button class="layer-toggle" data-layer="application">Application Layer</button>
                     <button class="layer-toggle px-3 py-1 text-sm rounded bg-gray-300 hover:bg-gray-400 transition-colors" data-layer="cip">CIP Layer</button>
                 </div>
+            
+                <!-- Insert the Map Controls block here -->
+                <div class="bg-white rounded-lg shadow p-4 mt-4">
+                    <h3 class="text-lg font-semibold mb-4">Map Controls</h3>
+                    <input type="number" id="latitudeInput" placeholder="Enter Latitude" class="mb-2 block rounded border px-2 py-1">
+                    <input type="number" id="longitudeInput" placeholder="Enter Longitude" class="mb-2 block rounded border px-2 py-1">
+                    <button id="updateMapLocation" class="action-button">Update Map</button>
+                </div>
             </div>
 
             <!-- Control Sections -->

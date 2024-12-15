@@ -32,7 +32,9 @@ const UI = {
         load: document.getElementById('load'),
         addConnection: document.getElementById('addConnection'),
         updateDeviceConfig: document.getElementById('updateDeviceConfig'),
-        updateMetrics: document.getElementById('updateMetrics')
+        updateMetrics: document.getElementById('updateMetrics'),
+        // New button for updating map location
+        updateMapLocation: document.getElementById('updateMapLocation')
     },
     selects: {
         deviceType: document.getElementById('deviceType'),
@@ -48,7 +50,10 @@ const UI = {
         dnsServer: document.getElementById('dnsServer'),
         customMetricSlider: document.getElementById('customMetricSlider'),
         customMetricValue: document.getElementById('customMetricValue'),
-        loadFile: document.getElementById('loadFile')
+        loadFile: document.getElementById('loadFile'),
+        // New inputs for map coordinates
+        latitudeInput: document.getElementById('latitudeInput'),
+        longitudeInput: document.getElementById('longitudeInput')
     },
     metrics: {
         cpu: document.getElementById('cpuMetric'),
@@ -331,104 +336,104 @@ function setupEventListeners() {
     });
 
     // Load Configuration
-UI.buttons.load?.addEventListener('click', () => {
-    UI.inputs.loadFile.click(); // Trigger the file input click
-});
+    UI.buttons.load?.addEventListener('click', () => {
+        UI.inputs.loadFile.click(); // Trigger the file input click
+    });
 
-UI.inputs.loadFile?.addEventListener('change', async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            try {
-                console.log('Loading file content:', e.target.result);
-                const data = JSON.parse(e.target.result);
-                console.log('Parsed JSON data:', data);
-                
-                // Clear existing state
-                const state = getState();
-                console.log('Current state before clearing:', state);
-
-                state.devices = [];
-                state.connections = [];
-
-                // Recreate devices
-                for (const deviceData of data.devices) {
-                    console.log('Creating device from:', deviceData);
-                    const device = new Device(  // Added this line
-                        deviceData.x,
-                        deviceData.y,
-                        deviceData.name,
-                        deviceData.type
-                    );
-                    device.id = deviceData.id;
-                    device.ipAddress = deviceData.ipAddress;
-                    device.subnetMask = deviceData.subnetMask;
-                    device.macAddress = deviceData.macAddress;
-                    device.gateway = deviceData.gateway;
-                    device.dnsServer = deviceData.dnsServer;
-                    device.metrics = deviceData.metrics;
-                    device.subnet = deviceData.subnet;
-                    device.services = deviceData.services;
-                    device.layer = deviceData.layer;
+    UI.inputs.loadFile?.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    console.log('Loading file content:', e.target.result);
+                    const data = JSON.parse(e.target.result);
+                    console.log('Parsed JSON data:', data);
                     
-                    addDevice(device);
-                }
+                    // Clear existing state
+                    const state = getState();
+                    console.log('Current state before clearing:', state);
 
-                // Recreate connections
-                for (const connData of data.connections) {
-                    console.log('Processing connection:', connData);
-                    const startDevice = state.devices.find(d => d.id === connData.source_device_id); // Changed from startDeviceId
-                    const endDevice = state.devices.find(d => d.id === connData.target_device_id);   // Changed from endDeviceId
-                    
-                    console.log('Found devices:', {
-                        startDevice: startDevice ? startDevice.id : 'not found',
-                        endDevice: endDevice ? endDevice.id : 'not found'
-                    });
-                    
-                    if (startDevice && endDevice) {
-                        try {
-                            console.log('Creating connection between:', {
-                                start: startDevice.name,
-                                end: endDevice.name,
-                                type: connData.type,
-                                bandwidth: connData.bandwidth
-                            });
-                            
-                            const connection = await createConnection(
-                                startDevice,
-                                endDevice,
-                                connData.type,
-                                connData.bandwidth
-                            );
-                            connection.id = connData.id;
-                            connection.layer = connData.layer;
-                            connection.startPortId = connData.startPortId;  // Added these
-                            connection.endPortId = connData.endPortId;      // port IDs
-                            
-                            console.log('Connection created successfully:', connection);
-                            addConnection(connection);
-                        } catch (error) {
-                            console.error('Failed to create connection:', error);
-                        }
-                    } else {
-                        console.warn('Could not find devices for connection:', {
-                            startId: connData.source_device_id,
-                            endId: connData.target_device_id
-                        });
+                    state.devices = [];
+                    state.connections = [];
+
+                    // Recreate devices
+                    for (const deviceData of data.devices) {
+                        console.log('Creating device from:', deviceData);
+                        const device = new Device(
+                            deviceData.x,
+                            deviceData.y,
+                            deviceData.name,
+                            deviceData.type
+                        );
+                        device.id = deviceData.id;
+                        device.ipAddress = deviceData.ipAddress;
+                        device.subnetMask = deviceData.subnetMask;
+                        device.macAddress = deviceData.macAddress;
+                        device.gateway = deviceData.gateway;
+                        device.dnsServer = deviceData.dnsServer;
+                        device.metrics = deviceData.metrics;
+                        device.subnet = deviceData.subnet;
+                        device.services = deviceData.services;
+                        device.layer = deviceData.layer;
+                        
+                        addDevice(device);
                     }
-                }
 
-                showSuccess('Configuration loaded successfully');
-                updateUI();
-            } catch (error) {
-                console.error('Error loading configuration:', error);
-                showError(`Failed to load configuration: ${error.message}`);
-            }
-        };
-        reader.readAsText(file);
-    }
-});
+                    // Recreate connections
+                    for (const connData of data.connections) {
+                        console.log('Processing connection:', connData);
+                        const startDevice = state.devices.find(d => d.id === connData.source_device_id);
+                        const endDevice = state.devices.find(d => d.id === connData.target_device_id);
+                        
+                        console.log('Found devices:', {
+                            startDevice: startDevice ? startDevice.id : 'not found',
+                            endDevice: endDevice ? endDevice.id : 'not found'
+                        });
+                        
+                        if (startDevice && endDevice) {
+                            try {
+                                console.log('Creating connection between:', {
+                                    start: startDevice.name,
+                                    end: endDevice.name,
+                                    type: connData.type,
+                                    bandwidth: connData.bandwidth
+                                });
+                                
+                                const connection = await createConnection(
+                                    startDevice,
+                                    endDevice,
+                                    connData.type,
+                                    connData.bandwidth
+                                );
+                                connection.id = connData.id;
+                                connection.layer = connData.layer;
+                                connection.startPortId = connData.startPortId;
+                                connection.endPortId = connData.endPortId;
+                                
+                                console.log('Connection created successfully:', connection);
+                                addConnection(connection);
+                            } catch (error) {
+                                console.error('Failed to create connection:', error);
+                            }
+                        } else {
+                            console.warn('Could not find devices for connection:', {
+                                startId: connData.source_device_id,
+                                endId: connData.target_device_id
+                            });
+                        }
+                    }
+
+                    showSuccess('Configuration loaded successfully');
+                    updateUI();
+                } catch (error) {
+                    console.error('Error loading configuration:', error);
+                    showError(`Failed to load configuration: ${error.message}`);
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
 
     // Slider for Custom Metric
     UI.inputs.customMetricSlider?.addEventListener('input', (event) => {
@@ -446,6 +451,24 @@ UI.inputs.loadFile?.addEventListener('change', async (event) => {
                 setCurrentLayer(layer);
             }
         });
+    });
+
+    // Add event listener for Update Map button
+    UI.buttons.updateMapLocation?.addEventListener('click', () => {
+        const lat = parseFloat(UI.inputs.latitudeInput.value);
+        const lng = parseFloat(UI.inputs.longitudeInput.value);
+
+        if (isNaN(lat) || isNaN(lng)) {
+            showError('Please enter valid latitude and longitude values.');
+            return;
+        }
+
+        if (window.myLeafletMap) {
+            window.myLeafletMap.setView([lat, lng], 13);
+            showSuccess(`Map updated to lat: ${lat}, lng: ${lng}`);
+        } else {
+            showError('Map is not initialized. Make sure you are in the Physical layer.');
+        }
     });
 }
 
@@ -491,7 +514,6 @@ function updateUI() {
         networkCanvas.style.display = 'none';
         physicalMapContainer.style.display = 'block';
     
-        // Check if L is available
         if (typeof window.L === 'undefined' || typeof window.L.map !== 'function') {
             console.error('Leaflet is not available. Cannot initialize map.');
             return;
@@ -505,16 +527,15 @@ function updateUI() {
                 attribution: '© OpenStreetMap'
             }).addTo(window.myLeafletMap);
         } else {
-            // If already initialized, invalidateSize to ensure proper rendering
+            // If already initialized, just revalidate size
             setTimeout(() => { window.myLeafletMap.invalidateSize(); }, 200);
         }
     } else {
         physicalMapContainer.style.display = 'none';
         networkCanvas.style.display = 'block';
     }
-    
+        
 }
-
 
 function clearDeviceConfig() {
     UI.inputs.deviceName.value = '';
