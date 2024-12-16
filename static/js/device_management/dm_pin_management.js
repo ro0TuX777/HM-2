@@ -1,4 +1,5 @@
 // dm_pin_management.js
+import { addPinMarker } from './dm_pin_management.js';
 
 import { showError, showSuccess } from './dm_ui.js';
 
@@ -260,3 +261,21 @@ setupPinEventListeners();
 loadJsonFilesHandler();
 export { loadJsonFilesHandler };
 
+export function addPinMarker(lat, lng, pinName, category, subcategory, status_classification, priority_level) {
+    if (!window.myLeafletMap) return;
+
+    let color = 'blue'; 
+    if (priority_level === 'High Priority') color = 'red';
+    else if (priority_level === 'Medium Priority') color = 'orange';
+    else if (priority_level === 'Low Priority') color = 'green';
+    else if (priority_level === 'Monitor Only') color = 'purple';
+
+    const pinIcon = window.L.divIcon({
+        className: '',
+        html: `<div style="width:20px; height:20px; background-color:${color}; border-radius:50%; opacity:0.8;"></div>`,
+        iconSize: [20,20]
+    });
+
+    const marker = window.L.marker([lat, lng], { icon: pinIcon }).addTo(window.myLeafletMap);
+    marker.bindPopup(`<b>${pinName}</b><br>${category} - ${subcategory}<br>Status: ${status_classification}<br>Priority: ${priority_level}`);
+}

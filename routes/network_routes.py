@@ -129,6 +129,26 @@ def list_json_files():
             files.append(fname)
     return jsonify(files), 200
 
+@network_viz_bp.route('/pins/by_json/<filename>', methods=['GET'])
+def get_pin_by_json(filename):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Ensure 'json_filename' column exists in 'pins' table
+    cur.execute('SELECT id, name, latitude, longitude, pin_type FROM pins WHERE json_filename = ?', (filename,))
+    row = cur.fetchone()
+    conn.close()
+
+    if row:
+        return jsonify({
+            'id': row['id'],
+            'name': row['name'],
+            'latitude': row['latitude'],
+            'longitude': row['longitude'],
+            'pin_type': row['pin_type']
+        }), 200
+    else:
+        return jsonify({'error': 'No pin associated with this JSON file'}), 404
+
 @network_viz_bp.route('/pins/associate_json', methods=['POST'])
 def associate_pin_json():
     data = request.json

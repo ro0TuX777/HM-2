@@ -17,8 +17,6 @@ import { Connection, createConnection } from './dm_connection.js';
 import { drawAll } from './dm_canvas.js';
 import { Device } from './dm_device.js';
 import { projectApi } from './services/dm_api.js';
-import { loadJsonFilesHandler } from './dm_pin_management.js';
-
 
 // UI Elements Cache
 const UI = {
@@ -327,13 +325,10 @@ function setupEventListeners() {
                 devices: state.devices.map(device => device.toJSON()),
                 connections: state.connections.map(connection => connection.toJSON())
             };
-    
+
             try {
                 await projectApi.saveProject(data);
                 showSuccess('Configuration saved successfully');
-    
-                // After successfully saving the project, reload the JSON files
-                loadJsonFilesHandler(); // Re-fetches and updates the dropdown
             } catch (error) {
                 showError(`Failed to save configuration: ${error.message}`);
             }
