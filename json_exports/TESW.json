@@ -1,0 +1,65 @@
+{
+    "name": "TESW",
+    "devices": [
+        {
+            "id": 231,
+            "name": "Router 1",
+            "type": "router",
+            "x": 715.3915054523045,
+            "y": 258.87754701151624,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "42:F3:F2:1A:80:BB",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 41,
+                "memory": 59,
+                "disk": 47,
+                "vulnerability": 88,
+                "network": 290,
+                "temperature": 39
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "SSH",
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 232,
+            "name": "Switch 2",
+            "type": "switch",
+            "x": 244.26061655146367,
+            "y": 97.94213232889184,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "A6:1D:B7:D3:75:F6",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 62,
+                "memory": 43,
+                "disk": 45,
+                "vulnerability": 5,
+                "network": 257,
+                "temperature": 30
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "HTTP"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ],
+    "connections": []
+}

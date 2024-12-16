@@ -1,6 +1,6 @@
 // dm_pin_management.js
 
-import { showError, showSuccess } from './dm_ui.js'; // Ensure these are exported from dm_ui.js if needed.
+import { showError, showSuccess } from './dm_ui.js';
 
 let UI = {
     inputs: {
@@ -14,27 +14,68 @@ let UI = {
         subcategorySelect: document.getElementById('subcategorySelect'),
         statusSelect: document.getElementById('statusSelect'),
         prioritySelect: document.getElementById('prioritySelect'),
-        pinListSelect: document.getElementById('pinListSelect')
+        pinListSelect: document.getElementById('pinListSelect'),
+        jsonFileSelect: document.getElementById('jsonFileSelect') // Dropdown for JSON files
     },
     buttons: {
         addPinButton: document.getElementById('addPinButton'),
         updateMapLocation: document.getElementById('updateMapLocation'),
         loadPinsButton: document.getElementById('loadPinsButton'),
-        viewPinButton: document.getElementById('viewPinButton')
+        viewPinButton: document.getElementById('viewPinButton'),
+        loadJsonFilesButton: document.getElementById('loadJsonFilesButton'), // Button to load JSON files
+        associatePinToJsonButton: document.getElementById('associatePinToJsonButton') // Button to associate pin with JSON
     }
 };
 
-// We'll store loaded pins in a variable for easy access
+// Store loaded pins globally for easy access
 let loadedPins = [];
 
+// Set up event listeners for pins
 function setupPinEventListeners() {
-    UI.buttons.addPinButton?.addEventListener('click', addPin);
+    UI.buttons.addPinButton?.addEventListener('click', addPinHandler);
     UI.selects.categorySelect?.addEventListener('change', populateSubcategories);
-    UI.buttons.loadPinsButton?.addEventListener('click', loadPins);
-    UI.buttons.viewPinButton?.addEventListener('click', viewSelectedPin);
+    UI.buttons.loadPinsButton?.addEventListener('click', loadPinsHandler);
+    UI.buttons.viewPinButton?.addEventListener('click', viewPinHandler);
+    UI.buttons.loadJsonFilesButton?.addEventListener('click', loadJsonFilesHandler);
+    UI.buttons.associatePinToJsonButton?.addEventListener('click', associatePinToJsonHandler);
 }
 
-async function addPin() {
+// Dynamically populate subcategories based on category selection
+function populateSubcategories() {
+    const cat = UI.selects.categorySelect.value;
+    const subcategorySelect = UI.selects.subcategorySelect;
+    subcategorySelect.innerHTML = '<option value="" disabled selected>Select Subcategory</option>';
+
+    let options = [];
+    switch(cat) {
+        case 'Critical Infrastructure':
+            options = ['Power Generation','Distribution Centers','Communication Hubs','Transportation Nodes'];
+            break;
+        case 'Personnel Categories':
+            options = ['Primary Contacts','Secondary Contacts','Unknown Entities','Watch List','Support Personnel'];
+            break;
+        case 'Operational Sites':
+            options = ['Command Posts','Rally Points','Checkpoints','Observation Posts'];
+            break;
+        case 'Status Classifications':
+            options = ['Active','Inactive','Pending Investigation','Verified','Unverified'];
+            break;
+        case 'Network Elements':
+            options = ['Network Nodes','Control Systems','Remote Terminals','Access Points'];
+            break;
+        default:
+            options = [];
+    }
+
+    options.forEach(opt => {
+        const op = document.createElement('option');
+        op.value = opt;
+        op.textContent = opt;
+        subcategorySelect.appendChild(op);
+    });
+}
+
+async function addPinHandler() {
     const lat = parseFloat(UI.inputs.latitudeInput.value);
     const lng = parseFloat(UI.inputs.longitudeInput.value);
     const pinName = UI.inputs.pinNameInput.value;
@@ -77,7 +118,7 @@ async function addPin() {
 
         showSuccess('Pin added successfully!');
 
-        // Add marker to the map (optional immediate display)
+        // Add marker to the map for the newly added pin
         addPinMarker(lat, lng, pinName, category, subcategory, status_classification, priority_level);
 
     } catch (error) {
@@ -86,7 +127,7 @@ async function addPin() {
     }
 }
 
-async function loadPins() {
+async function loadPinsHandler() {
     try {
         const response = await fetch('/api/pins');
         if (!response.ok) {
@@ -96,11 +137,9 @@ async function loadPins() {
         }
 
         const pins = await response.json();
-        loadedPins = pins; // Store loaded pins globally
+        loadedPins = pins; // store loaded pins globally
 
-        // Clear existing options
         UI.selects.pinListSelect.innerHTML = '<option value="" disabled selected>Select a Pin</option>';
-
         pins.forEach(pin => {
             const op = document.createElement('option');
             op.value = pin.id;
@@ -115,7 +154,7 @@ async function loadPins() {
     }
 }
 
-function viewSelectedPin() {
+function viewPinHandler() {
     const selectedPinId = UI.selects.pinListSelect.value;
     if (!selectedPinId) {
         showError('Please select a pin from the dropdown.');
@@ -128,21 +167,79 @@ function viewSelectedPin() {
         return;
     }
 
-    // Re-center map on pin and show a popup (if we have a marker)
+    // Attempt to center map on the pin and add a marker if necessary
     if (window.myLeafletMap) {
         window.myLeafletMap.setView([pin.latitude, pin.longitude], 13);
 
-        // If you want to add a marker dynamically now:
-        addPinMarker(pin.latitude, pin.longitude, pin.name, pin.pin_type);
+        // If we have pin_type encoded as "category - subcategory - status - priority"
+        // we can split them if needed. Otherwise, you may need to store these separately.
+        // For this example, we did store pin_type as a combined string in the backend.
+        // If you need separate values, consider updating the backend or the schema.
+        // For now, just display pin_type as is or adapt the logic if available.
+        // We'll assume pin_type is stored in 'pin_type' attribute if the backend returns it.
+        const pinInfo = pin.pin_type ? pin.pin_type.split(' - ') : [];
+        const [cat, subcat, status_cls, priority_lvl] = pinInfo.length === 4 ? pinInfo : ['', '', '', ''];
 
+        addPinMarker(pin.latitude, pin.longitude, pin.name, cat, subcat, status_cls, priority_lvl);
         showSuccess(`Viewing pin: ${pin.name}`);
     } else {
         showError('Map is not initialized. Switch to Physical layer.');
     }
 }
 
+async function loadJsonFilesHandler() {
+    try {
+        const response = await fetch('/api/json_files');
+        const files = await response.json();
+        if (!response.ok) {
+            showError(`Failed to load JSON files: ${files.error || response.statusText}`);
+            return;
+        }
+
+        UI.selects.jsonFileSelect.innerHTML = '<option value="" disabled selected>Select a JSON File</option>';
+        files.forEach(fname => {
+            const op = document.createElement('option');
+            op.value = fname;
+            op.textContent = fname;
+            UI.selects.jsonFileSelect.appendChild(op);
+        });
+        showSuccess('JSON files loaded successfully!');
+    } catch (error) {
+        console.error('Error loading JSON files:', error);
+        showError('Error loading JSON files.');
+    }
+}
+
+async function associatePinToJsonHandler() {
+    const pinId = UI.selects.pinListSelect.value;
+    const jsonFile = UI.selects.jsonFileSelect.value;
+
+    if (!pinId || !jsonFile) {
+        showError('Please select both a Pin and a JSON file.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/pins/associate_json', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ pin_id: parseInt(pinId), json_file: jsonFile })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            showError(`Failed to associate pin: ${result.error || response.statusText}`);
+            return;
+        }
+        showSuccess('Pin successfully associated with JSON file!');
+    } catch (error) {
+        console.error('Error associating pin with JSON:', error);
+        showError('Error associating pin.');
+    }
+}
+
 function addPinMarker(lat, lng, pinName, category, subcategory, status_classification, priority_level) {
-    // category, subcategory, status_classification, priority_level might be combined into pin_type
+    if (!window.myLeafletMap) return; // if map is not initialized, do nothing
+
     let color = 'blue'; 
     if (priority_level === 'High Priority') color = 'red';
     else if (priority_level === 'Medium Priority') color = 'orange';
@@ -159,40 +256,7 @@ function addPinMarker(lat, lng, pinName, category, subcategory, status_classific
     marker.bindPopup(`<b>${pinName}</b><br>${category} - ${subcategory}<br>Status: ${status_classification}<br>Priority: ${priority_level}`);
 }
 
-function populateSubcategories() {
-    const cat = UI.selects.categorySelect.value;
-    const subcategorySelect = UI.selects.subcategorySelect;
-    subcategorySelect.innerHTML = '<option value="" disabled selected>Select Subcategory</option>';
-
-    let options = [];
-    switch(cat) {
-        case 'Critical Infrastructure':
-            options = ['Power Generation','Distribution Centers','Communication Hubs','Transportation Nodes'];
-            break;
-        case 'Personnel Categories':
-            options = ['Primary Contacts','Secondary Contacts','Unknown Entities','Watch List','Support Personnel'];
-            break;
-        case 'Operational Sites':
-            options = ['Command Posts','Rally Points','Checkpoints','Observation Posts'];
-            break;
-        case 'Status Classifications':
-            // Actually this is a category itself, not sure if needed here,
-            // but leaving as example
-            options = ['Active','Inactive','Pending Investigation','Verified','Unverified'];
-            break;
-        case 'Network Elements':
-            options = ['Network Nodes','Control Systems','Remote Terminals','Access Points'];
-            break;
-        default:
-            options = [];
-    }
-
-    options.forEach(opt => {
-        const op = document.createElement('option');
-        op.value = opt;
-        op.textContent = opt;
-        subcategorySelect.appendChild(op);
-    });
-}
-
 setupPinEventListeners();
+loadJsonFilesHandler();
+export { loadJsonFilesHandler };
+

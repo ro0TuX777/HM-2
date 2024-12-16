@@ -1,0 +1,90 @@
+{
+    "name": "Etower2",
+    "devices": [
+        {
+            "id": 233,
+            "name": "Router 1",
+            "type": "router",
+            "x": 500.5062889456409,
+            "y": 273.38895817841984,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "35:5A:1E:EE:33:D0",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 4,
+                "memory": 16,
+                "disk": 82,
+                "vulnerability": 0,
+                "network": 741,
+                "temperature": 54
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 234,
+            "name": "Switch 2",
+            "type": "switch",
+            "x": 153.34878345870973,
+            "y": 159.41084145533551,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "FF:EE:26:D8:67:42",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 90,
+                "memory": 12,
+                "disk": 14,
+                "vulnerability": 40,
+                "network": 771,
+                "temperature": 47
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 235,
+            "name": "Server 3",
+            "type": "server",
+            "x": 718.1533339706499,
+            "y": 134.39288977706678,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "48:2E:82:AC:91:9D",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 54,
+                "memory": 56,
+                "disk": 81,
+                "vulnerability": 3,
+                "network": 607,
+                "temperature": 74
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "SSH",
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ],
+    "connections": []
+}

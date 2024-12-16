@@ -5,6 +5,7 @@ from utils.validation import validate_request_data, format_error
 from database import get_db_connection
 from datetime import datetime
 import pytz
+import os
 
 network_viz_bp = Blueprint('network_routes', __name__)
 
@@ -44,16 +45,12 @@ def adjusted_metrics():
 def get_pins():
     conn = get_db_connection()
     cur = conn.cursor()
-    # We assume 'pins' table has 'id' and 'name' columns
     cur.execute('SELECT id, name FROM pins')
     rows = cur.fetchall()
     conn.close()
-    
-    # Transform rows to a list of dicts
-    pins = [{'id': row['id'], 'name': row['name']} for row in rows]
-    
-    return jsonify(pins), 200
 
+    pins = [{'id': row['id'], 'name': row['name']} for row in rows]
+    return jsonify(pins), 200
 
 @network_viz_bp.route('/pins', methods=['POST'])
 def create_pin():
@@ -84,6 +81,13 @@ def create_pin():
 
     conn = get_db_connection()
     cur = conn.cursor()
+    # Ensure unique pin name
+    cur.execute('SELECT COUNT(*) as cnt FROM pins WHERE name = ?', (pin_name,))
+    row = cur.fetchone()
+    if row and row['cnt'] > 0:
+        conn.close()
+        return jsonify({'error': 'Pin name already exists. Please choose a different name.'}), 400
+
     cur.execute('''
         INSERT INTO pins (name, latitude, longitude, network_assoc, pin_type, timestamp_utc)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -92,3 +96,60 @@ def create_pin():
     conn.close()
 
     return jsonify({'message': 'Pin created successfully'}), 201
+
+@network_viz_bp.route('/projects', methods=['POST'])
+def save_project():
+    data = request.json
+    # Implement saving logic here, for example:
+    # - Validate 'name', 'devices', 'connections' fields
+    # - Write them to a JSON file in /json_exports
+    
+    if 'name' not in data or 'devices' not in data or 'connections' not in data:
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    project_name = data['name']
+    # Construct a filename
+    filename = f"{project_name}.json"
+    json_dir = os.path.join(os.path.dirname(__file__), '..', 'json_exports')
+    filepath = os.path.join(json_dir, filename)
+
+    # Save data to the JSON file
+    import json
+    with open(filepath, 'w') as f:
+        json.dump(data, f, indent=4)
+
+    return jsonify({'message': 'Project saved successfully'}), 201
+
+@network_viz_bp.route('/json_files', methods=['GET'])
+def list_json_files():
+    json_dir = os.path.join(os.path.dirname(__file__), '..', 'json_exports')
+    files = []
+    for fname in os.listdir(json_dir):
+        if fname.endswith('.json'):
+            files.append(fname)
+    return jsonify(files), 200
+
+@network_viz_bp.route('/pins/associate_json', methods=['POST'])
+def associate_pin_json():
+    data = request.json
+    required_fields = ['pin_id', 'json_file']
+    is_valid, error_msg = validate_request_data(required_fields, data)
+    if not is_valid:
+        return jsonify(format_error(error_msg)), 400
+
+    pin_id = data['pin_id']
+    json_file = data['json_file']
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Make sure pins table has json_filename column:
+    # ALTER TABLE pins ADD COLUMN json_filename TEXT;
+    cur.execute('UPDATE pins SET json_filename = ? WHERE id = ?', (json_file, pin_id))
+    if cur.rowcount == 0:
+        conn.close()
+        return jsonify({'error': 'Pin not found'}), 404
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Pin associated with JSON file successfully'}), 200

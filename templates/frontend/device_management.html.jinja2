@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
 <!-- Load Leaflet CSS locally -->
 <link rel="stylesheet" href="{{ url_for('static', filename='leaflet/leaflet.css') }}">
 
@@ -116,75 +115,9 @@
                     <button class="layer-toggle" data-layer="application">Application Layer</button>
                     <button class="layer-toggle px-3 py-1 text-sm rounded bg-gray-300 hover:bg-gray-400 transition-colors" data-layer="cip">CIP Layer</button>
                 </div>
-            
-                <div class="bg-white rounded-lg shadow p-4">
-                    <h3 class="text-lg font-semibold mb-4">Map & Pin Management</h3>
-                
-                    <!-- Map Controls -->
-                    <div class="mb-4">
-                        <h4 class="font-semibold mb-2">Map Controls</h4>
-                        <input type="number" id="latitudeInput" placeholder="Enter Latitude" class="mb-2 block w-full border rounded px-2 py-1" />
-                        <input type="number" id="longitudeInput" placeholder="Enter Longitude" class="mb-2 block w-full border rounded px-2 py-1" />
-                        <button id="updateMapLocation" class="action-button">Update Map</button>
-                    </div>
-                
-                    <!-- Pin Loading and Viewing -->
-                    <div class="mb-4">
-                        <h4 class="font-semibold mb-2">View Existing Pins</h4>
-                        <button id="loadPinsButton" class="action-button mr-2">Load Pins</button>
-                        <select id="pinListSelect" class="mb-2 mt-2 block w-full border rounded px-2 py-1">
-                            <option value="" disabled selected>Select a Pin</option>
-                        </select>
-                        <button id="viewPinButton" class="action-button">View Pin</button>
-                    </div>
-                
-                    <!-- Add Pin Section -->
-                    <div class="mb-4">
-                        <h4 class="font-semibold mb-2">Add New Pin</h4>
-                        <input type="text" id="pinNameInput" placeholder="Pin Name" class="mb-2 block w-full border rounded px-2 py-1" />
-                        
-                        <select id="categorySelect" class="mb-2 block w-full border rounded px-2 py-1">
-                            <option value="" disabled selected>Select Category</option>
-                            <option value="Critical Infrastructure">Critical Infrastructure</option>
-                            <option value="Personnel Categories">Personnel Categories</option>
-                            <option value="Operational Sites">Operational Sites</option>
-                            <option value="Status Classifications">Status Classifications</option>
-                            <option value="Network Elements">Network Elements</option>
-                        </select>
-                
-                        <!-- This will be dynamically populated based on category selection -->
-                        <select id="subcategorySelect" class="mb-2 block w-full border rounded px-2 py-1">
-                            <option value="" disabled selected>Select Subcategory</option>
-                        </select>
-                
-                        <select id="statusSelect" class="mb-2 block w-full border rounded px-2 py-1">
-                            <option value="" disabled selected>Select Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Pending Investigation">Pending Investigation</option>
-                            <option value="Verified">Verified</option>
-                            <option value="Unverified">Unverified</option>
-                        </select>
-                
-                        <select id="prioritySelect" class="mb-2 block w-full border rounded px-2 py-1">
-                            <option value="" disabled selected>Select Priority</option>
-                            <option value="High Priority">High Priority</option>
-                            <option value="Medium Priority">Medium Priority</option>
-                            <option value="Low Priority">Low Priority</option>
-                            <option value="Monitor Only">Monitor Only</option>
-                        </select>
-                
-                        <input type="text" id="networkAssocInput" placeholder="Network Assoc" class="mb-2 block w-full border rounded px-2 py-1" />
-                
-                        <button id="addPinButton" class="action-button">Add Pin</button>
-                    </div>
-                </div>
-                
 
-            <!-- Control Sections -->
-            <div class="space-y-6">
                 <!-- CIP Parameters -->
-                <div class="bg-white rounded-lg shadow p-4">
+                <div class="bg-white rounded-lg shadow p-4 mt-6">
                     <h3 class="text-lg font-semibold mb-4">CIP Parameters</h3>
                     <select id="cipParameters" class="mb-2">
                         <option value="" disabled selected>Select CIP Parameter</option>
@@ -208,90 +141,176 @@
                     </select>
                 </div>
 
-                <!-- Device Type Selector -->
-                <div class="bg-white rounded-lg shadow p-4">
-                    <h3 class="text-lg font-semibold mb-4">Add New Device</h3>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <select id="deviceType" class="mb-2">
-                            <option value="" disabled selected>Select Device Type</option>
-                            <option value="router">Router</option>
-                            <option value="switch">Switch</option>
-                            <option value="server">Server</option>
-                            <option value="workstation">Workstation</option>
-                            <option value="client">Client</option>
-                        </select>
-                        <button id="addDevice" class="action-button">Add Device</button>
+                <!-- Add New Device, Device Configuration and Performance Metrics side by side -->
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    <!-- Add New Device -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="text-lg font-semibold mb-4">Add New Device</h3>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <select id="deviceType" class="mb-2">
+                                <option value="" disabled selected>Select Device Type</option>
+                                <option value="router">Router</option>
+                                <option value="switch">Switch</option>
+                                <option value="server">Server</option>
+                                <option value="workstation">Workstation</option>
+                                <option value="client">Client</option>
+                            </select>
+                            <button id="addDevice" class="action-button">Add Device</button>
+                        </div>
                     </div>
+
+                    <!-- Device Configuration Panel -->
+                    <details class="bg-white rounded-lg shadow" id="deviceConfigPanel">
+                        <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
+                            Device Configuration
+                        </summary>
+                        <div class="p-4 space-y-4">
+                            <input type="text" id="deviceName" placeholder="Device Name">
+                            <input type="text" id="ipAddress" placeholder="IP Address">
+                            <input type="text" id="subnetMask" placeholder="Subnet Mask">
+                            <input type="text" id="macAddress" placeholder="MAC Address">
+                            <input type="text" id="gateway" placeholder="Gateway">
+                            <input type="text" id="dnsServer" placeholder="DNS Server">
+                            <button id="updateDeviceConfig" class="action-button w-full">Update Configuration</button>
+                        </div>
+                    </details>
+
+                    <!-- Performance Metrics Panel -->
+                    <details class="bg-white rounded-lg shadow" id="performanceMetricsPanel">
+                        <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
+                            Performance Metrics
+                        </summary>
+                        <div class="p-4 space-y-4">
+                            <div class="text-lg font-bold mb-4" id="metricDeviceName">Select a device to view metrics</div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <span class="block font-semibold text-sm text-gray-600">CPU Usage</span>
+                                    <div id="cpuValue" class="text-xl font-bold text-blue-600">0%</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <span class="block font-semibold text-sm text-gray-600">Memory Usage</span>
+                                    <div id="memoryValue" class="text-xl font-bold text-green-600">0%</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <span class="block font-semibold text-sm text-gray-600">Disk Usage</span>
+                                    <div id="diskValue" class="text-xl font-bold text-yellow-600">0%</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <span class="block font-semibold text-sm text-gray-600">Vulnerability Score</span>
+                                    <div id="vulnerabilityValue" class="text-xl font-bold text-red-600">0%</div>
+                                </div>
+                            </div>
+                            
+
+                            <div class="bg-gray-100 p-3 rounded">
+                                <label class="block font-semibold mb-2">Additional Metrics</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span class="text-sm text-gray-600">Network Usage:</span>
+                                        <div id="networkValue" class="text-lg font-bold text-indigo-600">0 Mbps</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm text-gray-600">Temperature:</span>
+                                        <div id="temperatureValue" class="text-lg font-bold text-orange-600">0°C</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-xs text-gray-500 text-right" id="lastUpdateTime">
+                                Last Update: Never
+                            </div>
+
+                            <button id="updateMetrics" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors w-full">Update Metrics</button>
+                        </div>
+                    </details>
                 </div>
 
-                <!-- Device Configuration Panel -->
-                <details class="bg-white rounded-lg shadow" id="deviceConfigPanel">
-                    <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
-                        Device Configuration
-                    </summary>
-                    <div class="p-4 space-y-4">
-                        <input type="text" id="deviceName" placeholder="Device Name">
-                        <input type="text" id="ipAddress" placeholder="IP Address">
-                        <input type="text" id="subnetMask" placeholder="Subnet Mask">
-                        <input type="text" id="macAddress" placeholder="MAC Address">
-                        <input type="text" id="gateway" placeholder="Gateway">
-                        <input type="text" id="dnsServer" placeholder="DNS Server">
-                        <button id="updateDeviceConfig" class="action-button w-full">Update Configuration</button>
-                    </div>
-                </details>
-
-                <!-- Performance Metrics Panel -->
-                <details class="bg-white rounded-lg shadow" id="performanceMetricsPanel">
-                    <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
-                        Performance Metrics
-                    </summary>
-                    <div class="p-4 space-y-4">
-                        <div class="text-lg font-bold mb-4" id="metricDeviceName">Select a device to view metrics</div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-50 p-3 rounded">
-                                <span class="block font-semibold text-sm text-gray-600">CPU Usage</span>
-                                <div id="cpuValue" class="text-xl font-bold text-blue-600">0%</div>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded">
-                                <span class="block font-semibold text-sm text-gray-600">Memory Usage</span>
-                                <div id="memoryValue" class="text-xl font-bold text-green-600">0%</div>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded">
-                                <span class="block font-semibold text-sm text-gray-600">Disk Usage</span>
-                                <div id="diskValue" class="text-xl font-bold text-yellow-600">0%</div>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded">
-                                <span class="block font-semibold text-sm text-gray-600">Vulnerability Score</span>
-                                <div id="vulnerabilityValue" class="text-xl font-bold text-red-600">0%</div>
-                            </div>
+                <!-- Map Controls, View Existing Pins, Add New Pins side by side -->
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    
+                    <!-- Map Controls -->
+                    <details class="bg-white rounded-lg shadow" id="mapControlsPanel">
+                        <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
+                            Map Controls
+                        </summary>
+                        <div class="p-4 space-y-4">
+                            <input type="number" id="latitudeInput" placeholder="Enter Latitude" class="mb-2">
+                            <input type="number" id="longitudeInput" placeholder="Enter Longitude" class="mb-2">
+                            <button id="updateMapLocation" class="action-button">Update Map</button>
                         </div>
-                        
+                    </details>
 
-                        <div class="bg-gray-100 p-3 rounded">
-                            <label class="block font-semibold mb-2">Additional Metrics</label>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span class="text-sm text-gray-600">Network Usage:</span>
-                                    <div id="networkValue" class="text-lg font-bold text-indigo-600">0 Mbps</div>
-                                </div>
-                                <div>
-                                    <span class="text-sm text-gray-600">Temperature:</span>
-                                    <div id="temperatureValue" class="text-lg font-bold text-orange-600">0°C</div>
-                                </div>
-                            </div>
+                    <!-- View Existing Pins -->
+                    <details class="bg-white rounded-lg shadow" id="viewPinsPanel">
+                        <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
+                            View Existing Pins
+                        </summary>
+                        <div class="p-4 space-y-4">
+                            <button id="loadPinsButton" class="action-button">Load Pins</button>
+                            <select id="pinListSelect" class="mb-2">
+                                <option value="" disabled selected>Select a Pin</option>
+                            </select>
+
+                            <!-- New Dropdown for JSON files -->
+                            <select id="jsonFileSelect" class="mb-2">
+                                <option value="" disabled selected>Select a JSON File</option>
+                            </select>
+
+                            <button id="viewPinButton" class="action-button">View Pin</button>
+                            <button id="associatePinToJsonButton" class="action-button">Associate</button>
                         </div>
+                    </details>
 
-                        <div class="text-xs text-gray-500 text-right" id="lastUpdateTime">
-                            Last Update: Never
+
+                    <!-- Add New Pin -->
+                    <details class="bg-white rounded-lg shadow" id="addPinPanel">
+                        <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
+                            Add New Pin
+                        </summary>
+                        <div class="p-4 space-y-4">
+                            <input type="text" id="pinNameInput" placeholder="Pin Name" class="mb-2">
+                            
+                            <select id="categorySelect" class="mb-2">
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="Critical Infrastructure">Critical Infrastructure</option>
+                                <option value="Personnel Categories">Personnel Categories</option>
+                                <option value="Operational Sites">Operational Sites</option>
+                                <option value="Status Classifications">Status Classifications</option>
+                                <option value="Network Elements">Network Elements</option>
+                            </select>
+                            
+                            <select id="subcategorySelect" class="mb-2">
+                                <option value="" disabled selected>Select Subcategory</option>
+                            </select>
+                            
+                            <select id="statusSelect" class="mb-2">
+                                <option value="" disabled selected>Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Pending Investigation">Pending Investigation</option>
+                                <option value="Verified">Verified</option>
+                                <option value="Unverified">Unverified</option>
+                            </select>
+                            
+                            <select id="prioritySelect" class="mb-2">
+                                <option value="" disabled selected>Select Priority</option>
+                                <option value="High Priority">High Priority</option>
+                                <option value="Medium Priority">Medium Priority</option>
+                                <option value="Low Priority">Low Priority</option>
+                                <option value="Monitor Only">Monitor Only</option>
+                            </select>
+                            
+                            <input type="text" id="networkAssocInput" placeholder="Network Assoc" class="mb-2">
+                            
+                            <button id="addPinButton" class="action-button">Add Pin</button>
                         </div>
+                    </details>
+                </div>
 
-                        <button id="updateMetrics" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors w-full">Update Metrics</button>
-                    </div>
-                </details>
 
                 <!-- Configuration Buttons -->
-                <div class="bg-white rounded-lg shadow p-4">
+                <div class="bg-white rounded-lg shadow p-4 mt-6">
                     <h3 class="text-lg font-semibold mb-4">Configuration</h3>
                     <div class="flex gap-4">
                         <button id="save" class="action-button">Save Configuration</button>
@@ -300,8 +319,8 @@
                     </div>
                 </div>
 
-                <!-- Bottom Panels -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Bottom Panels (Devices, Connections, Create Connection) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     <!-- Device List -->
                     <details class="bg-white rounded-lg shadow">
                         <summary class="text-lg font-semibold p-4 cursor-pointer hover:bg-gray-50">
