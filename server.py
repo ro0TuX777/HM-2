@@ -107,7 +107,7 @@ def device_management():
 
 @app.route('/visualization')
 def visualization():
-    return render_template('frontend/visualization.html.jinja2', active_page='visualization')
+    return render_template('frontend/visualidzation.html.jinja2', active_page='visualization')
 
 @app.route('/help')
 def help_page():

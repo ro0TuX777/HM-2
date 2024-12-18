@@ -1,7 +1,9 @@
 // dm_pin_management.js
-import { addPinMarker } from './dm_pin_management.js';
-
 import { showError, showSuccess } from './dm_ui.js';
+
+// Global variables to store currently associated pin and JSON
+export let currentAssociatedPin = null;
+export let currentAssociatedJson = null;
 
 let UI = {
     inputs: {
@@ -16,22 +18,20 @@ let UI = {
         statusSelect: document.getElementById('statusSelect'),
         prioritySelect: document.getElementById('prioritySelect'),
         pinListSelect: document.getElementById('pinListSelect'),
-        jsonFileSelect: document.getElementById('jsonFileSelect') // Dropdown for JSON files
+        jsonFileSelect: document.getElementById('jsonFileSelect')
     },
     buttons: {
         addPinButton: document.getElementById('addPinButton'),
         updateMapLocation: document.getElementById('updateMapLocation'),
         loadPinsButton: document.getElementById('loadPinsButton'),
         viewPinButton: document.getElementById('viewPinButton'),
-        loadJsonFilesButton: document.getElementById('loadJsonFilesButton'), // Button to load JSON files
-        associatePinToJsonButton: document.getElementById('associatePinToJsonButton') // Button to associate pin with JSON
+        loadJsonFilesButton: document.getElementById('loadJsonFilesButton'),
+        associatePinToJsonButton: document.getElementById('associatePinToJsonButton')
     }
 };
 
-// Store loaded pins globally for easy access
 let loadedPins = [];
 
-// Set up event listeners for pins
 function setupPinEventListeners() {
     UI.buttons.addPinButton?.addEventListener('click', addPinHandler);
     UI.selects.categorySelect?.addEventListener('change', populateSubcategories);
@@ -41,7 +41,6 @@ function setupPinEventListeners() {
     UI.buttons.associatePinToJsonButton?.addEventListener('click', associatePinToJsonHandler);
 }
 
-// Dynamically populate subcategories based on category selection
 function populateSubcategories() {
     const cat = UI.selects.categorySelect.value;
     const subcategorySelect = UI.selects.subcategorySelect;
@@ -118,8 +117,6 @@ async function addPinHandler() {
         }
 
         showSuccess('Pin added successfully!');
-
-        // Add marker to the map for the newly added pin
         addPinMarker(lat, lng, pinName, category, subcategory, status_classification, priority_level);
 
     } catch (error) {
@@ -168,20 +165,25 @@ function viewPinHandler() {
         return;
     }
 
-    // Attempt to center map on the pin and add a marker if necessary
+    // Attempt to center map on the pin
     if (window.myLeafletMap) {
         window.myLeafletMap.setView([pin.latitude, pin.longitude], 13);
 
-        // If we have pin_type encoded as "category - subcategory - status - priority"
-        // we can split them if needed. Otherwise, you may need to store these separately.
-        // For this example, we did store pin_type as a combined string in the backend.
-        // If you need separate values, consider updating the backend or the schema.
-        // For now, just display pin_type as is or adapt the logic if available.
-        // We'll assume pin_type is stored in 'pin_type' attribute if the backend returns it.
+        // Parse pin_type if available
         const pinInfo = pin.pin_type ? pin.pin_type.split(' - ') : [];
         const [cat, subcat, status_cls, priority_lvl] = pinInfo.length === 4 ? pinInfo : ['', '', '', ''];
 
-        addPinMarker(pin.latitude, pin.longitude, pin.name, cat, subcat, status_cls, priority_lvl);
+        // If we are currently on the Physical layer, add the marker now
+        const state = getState();
+        if (state.currentLayer === 'physical') {
+            addPinMarker(pin.latitude, pin.longitude, pin.name, cat, subcat, status_cls, priority_lvl);
+        } else {
+            // Optionally, tell the user to switch layers or switch automatically
+            // For example:
+            // showError('Switch to Physical layer to see the pin.');
+            // or setCurrentLayer('physical') and rely on EVENTS.LAYER_CHANGED if you prefer
+        }
+
         showSuccess(`Viewing pin: ${pin.name}`);
     } else {
         showError('Map is not initialized. Switch to Physical layer.');
@@ -232,34 +234,27 @@ async function associatePinToJsonHandler() {
             return;
         }
         showSuccess('Pin successfully associated with JSON file!');
+
+        const pin = loadedPins.find(p => p.id == pinId);
+        if (pin) {
+            document.getElementById('pinInfoName').textContent = pin.name;
+            document.getElementById('pinInfoNetwork').textContent = jsonFile;
+            document.getElementById('pinInfoTime').textContent = new Date().toLocaleString();
+            document.getElementById('pinInfoContainer').style.display = 'block';
+
+            // Update global variables so dm_ui.js can reference them
+            currentAssociatedPin = pin;
+            currentAssociatedJson = jsonFile;
+        }
+
     } catch (error) {
         console.error('Error associating pin with JSON:', error);
         showError('Error associating pin.');
     }
 }
 
-function addPinMarker(lat, lng, pinName, category, subcategory, status_classification, priority_level) {
-    if (!window.myLeafletMap) return; // if map is not initialized, do nothing
-
-    let color = 'blue'; 
-    if (priority_level === 'High Priority') color = 'red';
-    else if (priority_level === 'Medium Priority') color = 'orange';
-    else if (priority_level === 'Low Priority') color = 'green';
-    else if (priority_level === 'Monitor Only') color = 'purple';
-
-    const pinIcon = window.L.divIcon({
-        className: '',
-        html: `<div style="width:20px; height:20px; background-color:${color}; border-radius:50%; opacity:0.8;"></div>`,
-        iconSize: [20,20]
-    });
-
-    const marker = window.L.marker([lat, lng], { icon: pinIcon }).addTo(window.myLeafletMap);
-    marker.bindPopup(`<b>${pinName}</b><br>${category} - ${subcategory}<br>Status: ${status_classification}<br>Priority: ${priority_level}`);
-}
-
 setupPinEventListeners();
 loadJsonFilesHandler();
-export { loadJsonFilesHandler };
 
 export function addPinMarker(lat, lng, pinName, category, subcategory, status_classification, priority_level) {
     if (!window.myLeafletMap) return;

@@ -6,7 +6,6 @@
 
 <!-- Load Leaflet CSS locally -->
 <link rel="stylesheet" href="{{ url_for('static', filename='leaflet/leaflet.css') }}">
-
 {% endblock %}
 
 {% block title %}Device Management Page{% endblock %}
@@ -116,29 +115,56 @@
                     <button class="layer-toggle px-3 py-1 text-sm rounded bg-gray-300 hover:bg-gray-400 transition-colors" data-layer="cip">CIP Layer</button>
                 </div>
 
-                <!-- CIP Parameters -->
-                <div class="bg-white rounded-lg shadow p-4 mt-6">
-                    <h3 class="text-lg font-semibold mb-4">CIP Parameters</h3>
-                    <select id="cipParameters" class="mb-2">
-                        <option value="" disabled selected>Select CIP Parameter</option>
-                        <option value="patch_urgency">Patch Urgency (PU)</option>
-                        <option value="threat_level">Threat Level (TL)</option>
-                        <option value="known_vulnerabilities">Known Vulnerabilities (KV)</option>
-                        <option value="global_threat_level">Global Threat Level (GTL)</option>
-                        <option value="industry_threat_level">Industry Threat Level (ITL)</option>
-                        <option value="user_risk_score">User Risk Score (URS)</option>
-                        <option value="threat_intelligence_score">Threat Intelligence Score (TIS)</option>
-                        <option value="vulnerability_severity_score">Vulnerability Severity Score (VSS)</option>
-                        <option value="alertness_score">Alertness Score (AS)</option>
-                        <option value="honeypot_threat_indicator">Honeypot Threat Indicator (HTI)</option>
-                        <option value="compliance_risk_score">Compliance Risk Score (CRS)</option>
-                        <option value="supply_chain_risk_factor">Supply Chain Risk Factor (SCRF)</option>
-                        <option value="smoothing_factor">Smoothing Factor (Alpha for EMA)</option>
-                        <option value="sigmoid_steepness">Sigmoid Steepness (k)</option>
-                        <option value="sigmoid_inflection_point">Sigmoid Inflection Point (x₀)</option>
-                        <option value="z_score_mean">Z-Score Mean (μ)</option>
-                        <option value="z_score_standard_deviation">Z-Score Standard Deviation (σ)</option>
-                    </select>
+                <!-- Three Column Layout: CIP Parameters | Configuration | Area Of Interest -->
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    <!-- Column 1: CIP Parameters -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="text-lg font-semibold mb-4">CIP Parameters</h3>
+                        <select id="cipParameters" class="mb-2">
+                            <option value="" disabled selected>Select CIP Parameter</option>
+                            <option value="patch_urgency">Patch Urgency (PU)</option>
+                            <option value="threat_level">Threat Level (TL)</option>
+                            <option value="known_vulnerabilities">Known Vulnerabilities (KV)</option>
+                            <option value="global_threat_level">Global Threat Level (GTL)</option>
+                            <option value="industry_threat_level">Industry Threat Level (ITL)</option>
+                            <option value="user_risk_score">User Risk Score (URS)</option>
+                            <option value="threat_intelligence_score">Threat Intelligence Score (TIS)</option>
+                            <option value="vulnerability_severity_score">Vulnerability Severity Score (VSS)</option>
+                            <option value="alertness_score">Alertness Score (AS)</option>
+                            <option value="honeypot_threat_indicator">Honeypot Threat Indicator (HTI)</option>
+                            <option value="compliance_risk_score">Compliance Risk Score (CRS)</option>
+                            <option value="supply_chain_risk_factor">Supply Chain Risk Factor (SCRF)</option>
+                            <option value="smoothing_factor">Smoothing Factor (Alpha for EMA)</option>
+                            <option value="sigmoid_steepness">Sigmoid Steepness (k)</option>
+                            <option value="sigmoid_inflection_point">Sigmoid Inflection Point (x₀)</option>
+                            <option value="z_score_mean">Z-Score Mean (μ)</option>
+                            <option value="z_score_standard_deviation">Z-Score Standard Deviation (σ)</option>
+                        </select>
+                    </div>
+
+                    <!-- Column 2: Configuration -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="text-lg font-semibold mb-4">Configuration</h3>
+                        <div class="flex gap-4">
+                            <button id="save" class="action-button">Save Configuration</button>
+                            <input type="file" id="loadFile" accept=".json" class="hidden">
+                            <button id="load" class="action-button">Load Configuration</button>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Area Of Interest -->
+                    <div class="bg-white rounded-lg shadow p-4" id="pinInfoContainer" style="display:none;">
+                        <h3 class="text-lg font-semibold mb-4">Area Of Interest</h3>
+                        <div class="text-sm text-gray-700 mb-2">
+                            <strong>Pin Name:</strong> <span id="pinInfoName">N/A</span>
+                        </div>
+                        <div class="text-sm text-gray-700 mb-2">
+                            <strong>Network (JSON):</strong> <span id="pinInfoNetwork">N/A</span>
+                        </div>
+                        <div class="text-sm text-gray-700 mb-2">
+                            <strong>Time:</strong> <span id="pinInfoTime">N/A</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Add New Device, Device Configuration and Performance Metrics side by side -->
@@ -201,7 +227,6 @@
                                     <div id="vulnerabilityValue" class="text-xl font-bold text-red-600">0%</div>
                                 </div>
                             </div>
-                            
 
                             <div class="bg-gray-100 p-3 rounded">
                                 <label class="block font-semibold mb-2">Additional Metrics</label>
@@ -251,17 +276,13 @@
                             <select id="pinListSelect" class="mb-2">
                                 <option value="" disabled selected>Select a Pin</option>
                             </select>
-
-                            <!-- New Dropdown for JSON files -->
                             <select id="jsonFileSelect" class="mb-2">
                                 <option value="" disabled selected>Select a JSON File</option>
                             </select>
-
                             <button id="viewPinButton" class="action-button">View Pin</button>
                             <button id="associatePinToJsonButton" class="action-button">Associate</button>
                         </div>
                     </details>
-
 
                     <!-- Add New Pin -->
                     <details class="bg-white rounded-lg shadow" id="addPinPanel">
@@ -306,17 +327,6 @@
                             <button id="addPinButton" class="action-button">Add Pin</button>
                         </div>
                     </details>
-                </div>
-
-
-                <!-- Configuration Buttons -->
-                <div class="bg-white rounded-lg shadow p-4 mt-6">
-                    <h3 class="text-lg font-semibold mb-4">Configuration</h3>
-                    <div class="flex gap-4">
-                        <button id="save" class="action-button">Save Configuration</button>
-                        <input type="file" id="loadFile" accept=".json" class="hidden">
-                        <button id="load" class="action-button">Load Configuration</button>
-                    </div>
                 </div>
 
                 <!-- Bottom Panels (Devices, Connections, Create Connection) -->

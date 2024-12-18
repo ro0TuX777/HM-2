@@ -129,26 +129,6 @@ def list_json_files():
             files.append(fname)
     return jsonify(files), 200
 
-@network_viz_bp.route('/pins/by_json/<filename>', methods=['GET'])
-def get_pin_by_json(filename):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    # Ensure 'json_filename' column exists in 'pins' table
-    cur.execute('SELECT id, name, latitude, longitude, pin_type FROM pins WHERE json_filename = ?', (filename,))
-    row = cur.fetchone()
-    conn.close()
-
-    if row:
-        return jsonify({
-            'id': row['id'],
-            'name': row['name'],
-            'latitude': row['latitude'],
-            'longitude': row['longitude'],
-            'pin_type': row['pin_type']
-        }), 200
-    else:
-        return jsonify({'error': 'No pin associated with this JSON file'}), 404
-
 @network_viz_bp.route('/pins/associate_json', methods=['POST'])
 def associate_pin_json():
     data = request.json
@@ -162,14 +142,43 @@ def associate_pin_json():
 
     conn = get_db_connection()
     cur = conn.cursor()
-    # Make sure pins table has json_filename column:
-    # ALTER TABLE pins ADD COLUMN json_filename TEXT;
-    cur.execute('UPDATE pins SET json_filename = ? WHERE id = ?', (json_file, pin_id))
-    if cur.rowcount == 0:
+    # Upsert logic: if already associated, update; else insert new record
+    cur.execute('SELECT COUNT(*) FROM pin_json_associations WHERE pin_id=? AND json_filename=?', (pin_id, json_file))
+    row = cur.fetchone()
+    if row[0] > 0:
+        # Already exists, just return success
         conn.close()
-        return jsonify({'error': 'Pin not found'}), 404
+        return jsonify({'message': 'Pin already associated with this JSON file'}), 200
+    else:
+        # Insert new association
+        cur.execute('INSERT INTO pin_json_associations (pin_id, json_filename) VALUES (?, ?)', (pin_id, json_file))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'Pin associated with JSON file successfully'}), 201
 
-    conn.commit()
+@network_viz_bp.route('/pins/by_json/<json_file>', methods=['GET'])
+def get_pin_by_json(json_file):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT p.id, p.name, p.latitude, p.longitude, p.pin_type
+        FROM pins p
+        JOIN pin_json_associations pa ON p.id = pa.pin_id
+        WHERE pa.json_filename = ?
+    ''', (json_file,))
+    row = cur.fetchone()
     conn.close()
 
-    return jsonify({'message': 'Pin associated with JSON file successfully'}), 200
+    if not row:
+        return jsonify({'error': 'No pin associated with this JSON file'}), 404
+
+    # Return pin details
+    pin_data = {
+        'id': row['id'],
+        'name': row['name'],
+        'latitude': row['latitude'],
+        'longitude': row['longitude'],
+        'pin_type': row['pin_type']
+    }
+    return jsonify(pin_data), 200
+

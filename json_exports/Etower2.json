@@ -1,5 +1,5 @@
 {
-    "name": "Etower2",
+    "name": "ETower2",
     "devices": [
         {
             "id": 233,
@@ -13,12 +13,12 @@
             "gateway": "192.168.1.254",
             "dnsServer": "8.8.8.8",
             "metrics": {
-                "cpu": 4,
-                "memory": 16,
-                "disk": 82,
-                "vulnerability": 0,
-                "network": 741,
-                "temperature": 54
+                "cpu": 19,
+                "memory": 12,
+                "disk": 75,
+                "vulnerability": 66,
+                "network": 689,
+                "temperature": 61
             },
             "subnet": "192.168.1.0/24",
             "services": [],
@@ -40,12 +40,12 @@
             "gateway": "192.168.1.254",
             "dnsServer": "8.8.8.8",
             "metrics": {
-                "cpu": 90,
-                "memory": 12,
-                "disk": 14,
-                "vulnerability": 40,
-                "network": 771,
-                "temperature": 47
+                "cpu": 81,
+                "memory": 25,
+                "disk": 49,
+                "vulnerability": 62,
+                "network": 853,
+                "temperature": 44
             },
             "subnet": "192.168.1.0/24",
             "services": [],
@@ -59,20 +59,20 @@
             "id": 235,
             "name": "Server 3",
             "type": "server",
-            "x": 718.1533339706499,
-            "y": 134.39288977706678,
+            "x": 932.3308775694751,
+            "y": 27.824172299258386,
             "ipAddress": "192.168.1.1",
             "subnetMask": "255.255.255.0",
             "macAddress": "48:2E:82:AC:91:9D",
             "gateway": "192.168.1.254",
             "dnsServer": "8.8.8.8",
             "metrics": {
-                "cpu": 54,
-                "memory": 56,
-                "disk": 81,
-                "vulnerability": 3,
-                "network": 607,
-                "temperature": 74
+                "cpu": 67,
+                "memory": 66,
+                "disk": 29,
+                "vulnerability": 15,
+                "network": 359,
+                "temperature": 51
             },
             "subnet": "192.168.1.0/24",
             "services": [
@@ -86,5 +86,34 @@
             }
         }
     ],
-    "connections": []
+    "connections": [
+        {
+            "id": "conn_isc7vko5l",
+            "source_device_id": 233,
+            "target_device_id": 234,
+            "type": "fiber",
+            "bandwidth": 250,
+            "startPortId": "dev_0hr8zxkpp_port1",
+            "endPortId": "dev_3kysy3ll4_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_ma74ste6u",
+            "source_device_id": 235,
+            "target_device_id": 234,
+            "type": "ethernet",
+            "bandwidth": 100,
+            "startPortId": "235_port1",
+            "endPortId": "dev_3kysy3ll4_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ]
 }
