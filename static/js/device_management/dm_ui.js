@@ -17,10 +17,12 @@ import { Connection, createConnection } from './dm_connection.js';
 import { drawAll } from './dm_canvas.js';
 import { Device } from './dm_device.js';
 import { projectApi } from './services/dm_api.js';
+// If addPinMarker is defined in dm_pin_management.js, import it:
+import { addPinMarker } from './dm_pin_management.js'; 
 
-// Global variables for current associated pin and JSON
-let currentAssociatedPin = null;
-let currentAssociatedJson = null;
+// Global variables for AOI
+let currentAssociatedPinData = null;
+let currentAssociatedJsonFile = null;
 
 // UI Elements Cache
 const UI = {
@@ -213,6 +215,52 @@ async function handleAddConnection() {
     }
 }
 
+// After configuration is loaded, fetch AOI pin and display
+async function handleConfigurationLoaded(file, data) {
+    showSuccess('Configuration loaded successfully');
+    updateUI();
+
+    const jsonFilename = file.name;
+    try {
+        const response = await fetch(`/api/pins/by_json/${encodeURIComponent(jsonFilename)}`);
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error(`Server did not return JSON. Content-Type: ${contentType}`);
+        }
+
+        const pinData = await response.json();
+        if (pinData.error) {
+            console.log('No associated pin found for this JSON file');
+            document.getElementById('pinInfoContainer').style.display = 'none';
+            currentAssociatedPinData = null;
+            currentAssociatedJsonFile = null;
+        } else {
+            document.getElementById('pinInfoName').textContent = pinData.name;
+            document.getElementById('pinInfoNetwork').textContent = jsonFilename;
+            document.getElementById('pinInfoTime').textContent = new Date().toLocaleString();
+
+            // Display latitude and longitude in AOI
+            document.getElementById('pinInfoLatitude').textContent = pinData.latitude;
+            document.getElementById('pinInfoLongitude').textContent = pinData.longitude;
+
+            document.getElementById('pinInfoContainer').style.display = 'block';
+            currentAssociatedPinData = pinData;
+            currentAssociatedJsonFile = jsonFilename;
+
+            // If we are already in the physical layer, center the map now
+            const state = getState();
+            if (state.currentLayer === 'physical' && window.myLeafletMap && pinData.latitude && pinData.longitude) {
+                window.myLeafletMap.setView([pinData.latitude, pinData.longitude], 13);
+                const pinInfo = pinData.pin_type ? pinData.pin_type.split(' - ') : [];
+                const [cat, subcat, status_cls, priority_lvl] = pinInfo.length === 4 ? pinInfo : ['', '', '', ''];
+                addPinMarker(pinData.latitude, pinData.longitude, pinData.name, cat, subcat, status_cls, priority_lvl);
+            }
+        }
+    } catch (err) {
+        console.error('Failed to fetch pin by JSON:', err);
+    }
+}
+
 // Initialization
 function initializeUI() {
     try {
@@ -240,7 +288,6 @@ function initializeUI() {
 
 // Event Listeners
 function setupEventListeners() {
-    // Add Device
     UI.buttons.addDevice?.addEventListener('click', () => {
         const type = UI.selects.deviceType?.value;
         if (!type) {
@@ -250,10 +297,8 @@ function setupEventListeners() {
         handleAddDevice(type);
     });
 
-    // Add Connection
     UI.buttons.addConnection?.addEventListener('click', handleAddConnection);
 
-    // Update Device Config
     UI.buttons.updateDeviceConfig?.addEventListener('click', () => {
         const selectedDevice = getSelectedDevice();
         if (!selectedDevice) {
@@ -275,20 +320,17 @@ function setupEventListeners() {
         showSuccess('Device configuration updated');
     });
 
-    // Update Metrics
     UI.buttons.updateMetrics?.addEventListener('click', () => {
         const selectedDevice = getSelectedDevice();
         if (!selectedDevice) {
             showError('No device selected');
             return;
         }
-        // Simulate metrics update
         selectedDevice.updateMetrics();
         updateUI();
         showSuccess('Device metrics updated');
     });
 
-    // Save Configuration
     UI.buttons.save?.addEventListener('click', async () => {
         const projectName = prompt("Enter a name for the configuration:");
         if (projectName) {
@@ -308,127 +350,93 @@ function setupEventListeners() {
         }
     });
 
-    // Load Configuration
     UI.buttons.load?.addEventListener('click', () => {
         UI.inputs.loadFile.click(); // Trigger file input
     });
 
     UI.inputs.loadFile?.addEventListener('change', async (event) => {
         const file = event.target.files[0];
-        if (!file) return;
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    console.log('Loading file content:', e.target.result);
+                    const data = JSON.parse(e.target.result);
+                    console.log('Parsed JSON data:', data);
 
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            try {
-                console.log('Loading file content:', e.target.result);
-                const data = JSON.parse(e.target.result);
-                console.log('Parsed JSON data:', data);
+                    const state = getState();
+                    console.log('Current state before clearing:', state);
 
-                const state = getState();
-                console.log('Current state before clearing:', state);
+                    state.devices = [];
+                    state.connections = [];
 
-                state.devices = [];
-                state.connections = [];
-
-                // Recreate devices
-                for (const deviceData of data.devices) {
-                    const device = new Device(
-                        deviceData.x,
-                        deviceData.y,
-                        deviceData.name,
-                        deviceData.type
-                    );
-                    device.id = deviceData.id;
-                    device.ipAddress = deviceData.ipAddress;
-                    device.subnetMask = deviceData.subnetMask;
-                    device.macAddress = deviceData.macAddress;
-                    device.gateway = deviceData.gateway;
-                    device.dnsServer = deviceData.dnsServer;
-                    device.metrics = deviceData.metrics;
-                    device.subnet = deviceData.subnet;
-                    device.services = deviceData.services;
-                    device.layer = deviceData.layer;
-                    
-                    addDevice(device);
-                }
-
-                // Recreate connections
-                for (const connData of data.connections) {
-                    const startDevice = state.devices.find(d => d.id === connData.source_device_id);
-                    const endDevice = state.devices.find(d => d.id === connData.target_device_id);
-
-                    if (startDevice && endDevice) {
-                        const connection = await createConnection(
-                            startDevice,
-                            endDevice,
-                            connData.type,
-                            connData.bandwidth
+                    // Recreate devices
+                    for (const deviceData of data.devices) {
+                        const device = new Device(
+                            deviceData.x,
+                            deviceData.y,
+                            deviceData.name,
+                            deviceData.type
                         );
-                        connection.id = connData.id;
-                        connection.layer = connData.layer;
-                        connection.startPortId = connData.startPortId;
-                        connection.endPortId = connData.endPortId;
-                        
-                        addConnection(connection);
+                        device.id = deviceData.id;
+                        device.ipAddress = deviceData.ipAddress;
+                        device.subnetMask = deviceData.subnetMask;
+                        device.macAddress = deviceData.macAddress;
+                        device.gateway = deviceData.gateway;
+                        device.dnsServer = deviceData.dnsServer;
+                        device.metrics = deviceData.metrics;
+                        device.subnet = deviceData.subnet;
+                        device.services = deviceData.services;
+                        device.layer = deviceData.layer;
+
+                        addDevice(device);
                     }
+
+                    // Recreate connections
+                    for (const connData of data.connections) {
+                        const startDevice = state.devices.find(d => d.id === connData.source_device_id);
+                        const endDevice = state.devices.find(d => d.id === connData.target_device_id);
+
+                        if (startDevice && endDevice) {
+                            try {
+                                const connection = await createConnection(
+                                    startDevice,
+                                    endDevice,
+                                    connData.type,
+                                    connData.bandwidth
+                                );
+                                connection.id = connData.id;
+                                connection.layer = connData.layer;
+                                connection.startPortId = connData.startPortId;
+                                connection.endPortId = connData.endPortId;
+                                addConnection(connection);
+                            } catch (error) {
+                                console.error('Failed to create connection:', error);
+                            }
+                        } else {
+                            console.warn('Could not find devices for connection:', {
+                                startId: connData.source_device_id,
+                                endId: connData.target_device_id
+                            });
+                        }
+                    }
+
+                    await handleConfigurationLoaded(file, data);
+
+                } catch (error) {
+                    console.error('Error loading configuration:', error);
+                    showError(`Failed to load configuration: ${error.message}`);
                 }
-
-                showSuccess('Configuration loaded successfully');
-                updateUI();
-
-                // Now fetch the pin associated with this just-loaded JSON file
-                const jsonFilename = file.name;
-                fetch(`/api/pins/by_json/${encodeURIComponent(jsonFilename)}`)
-                  .then(r => r.json())
-                  .then(pinData => {
-                    if (pinData.error) {
-                      console.log('No associated pin found for this JSON file');
-                      document.getElementById('pinInfoContainer').style.display = 'none';
-                      currentAssociatedPin = null;
-                      currentAssociatedJson = null;
-                    } else {
-                      // Store globally
-                      currentAssociatedPin = pinData;
-                      currentAssociatedJson = jsonFilename;
-
-                      document.getElementById('pinInfoName').textContent = pinData.name;
-                      document.getElementById('pinInfoNetwork').textContent = jsonFilename;
-                      document.getElementById('pinInfoTime').textContent = new Date().toLocaleString();
-                      document.getElementById('pinInfoContainer').style.display = 'block';
-
-                      const pinInfo = pinData.pin_type ? pinData.pin_type.split(' - ') : [];
-                      const [cat, subcat, status_cls, priority_lvl] = pinInfo.length === 4 ? pinInfo : ['', '', '', ''];
-
-                      if (window.myLeafletMap && pinData.latitude && pinData.longitude) {
-                        window.myLeafletMap.setView([pinData.latitude, pinData.longitude], 13);
-                        addPinMarker(
-                          pinData.latitude,
-                          pinData.longitude,
-                          pinData.name,
-                          cat,
-                          subcat,
-                          status_cls,
-                          priority_lvl
-                        );
-                      }
-                    }
-                  })
-                  .catch(err => console.error('Failed to fetch pin by JSON:', err));
-
-            } catch (error) {
-                console.error('Error loading configuration:', error);
-                showError(`Failed to load configuration: ${error.message}`);
-            }
-        };
-        reader.readAsText(file);
+            };
+            reader.readAsText(file);
+        }
     });
 
-    // Slider for Custom Metric
     UI.inputs.customMetricSlider?.addEventListener('input', (event) => {
-        UI.inputs.customMetricValue.textContent = event.target.value;
+        const value = event.target.value;
+        UI.inputs.customMetricValue.textContent = value;
     });
 
-    // Layer Toggles
     UI.layerToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {
             UI.layerToggles.forEach(t => t.classList.remove('active'));
@@ -438,14 +446,15 @@ function setupEventListeners() {
         });
     });
 
-    // Update Map Location
     UI.buttons.updateMapLocation?.addEventListener('click', () => {
         const lat = parseFloat(UI.inputs.latitudeInput.value);
         const lng = parseFloat(UI.inputs.longitudeInput.value);
+
         if (isNaN(lat) || isNaN(lng)) {
             showError('Please enter valid latitude and longitude values.');
             return;
         }
+
         if (window.myLeafletMap) {
             window.myLeafletMap.setView([lat, lng], 13);
             showSuccess(`Map updated to lat: ${lat}, lng: ${lng}`);
@@ -455,6 +464,7 @@ function setupEventListeners() {
     });
 }
 
+// State Subscriptions
 function setupStateSubscriptions() {
     subscribeToState([
         EVENTS.DEVICE_ADDED,
@@ -466,10 +476,23 @@ function setupStateSubscriptions() {
         EVENTS.LAYER_CHANGED
     ], (eventName, detail) => {
         updateUI();
-        // No direct AOI logic here since we fetch upon load configuration.
+
+        if (eventName === EVENTS.LAYER_CHANGED) {
+            const state = getState();
+            if (state.currentLayer === 'physical' && currentAssociatedPinData && window.myLeafletMap) {
+                const { latitude, longitude, pin_type, name } = currentAssociatedPinData;
+                if (latitude && longitude) {
+                    window.myLeafletMap.setView([latitude, longitude], 13);
+                    const pinInfo = pin_type ? pin_type.split(' - ') : [];
+                    const [cat, subcat, status_cls, priority_lvl] = pinInfo.length === 4 ? pinInfo : ['', '', '', ''];
+                    addPinMarker(latitude, longitude, name, cat, subcat, status_cls, priority_lvl);
+                }
+            }
+        }
     });
 }
 
+// Update UI
 function updateUI() {
     const state = getState();
     if (!state.initialized) {

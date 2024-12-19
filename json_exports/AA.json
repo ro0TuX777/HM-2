@@ -1,0 +1,122 @@
+{
+    "name": "AA",
+    "devices": [
+        {
+            "id": 246,
+            "name": "Router 1",
+            "type": "router",
+            "x": 124.9976554430575,
+            "y": 315.25663058608257,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "B7:89:A4:8B:18:E8",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 44,
+                "memory": 54,
+                "disk": 97,
+                "vulnerability": 69,
+                "network": 692,
+                "temperature": 52
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 247,
+            "name": "Router 2",
+            "type": "router",
+            "x": 114.22931811190583,
+            "y": 54.15891577449179,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "C4:BA:9F:EA:09:45",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 21,
+                "memory": 17,
+                "disk": 99,
+                "vulnerability": 75,
+                "network": 494,
+                "temperature": 64
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "HTTP"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 248,
+            "name": "Client 3",
+            "type": "client",
+            "x": 696.2965033740728,
+            "y": 133.662158592067,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "0C:45:6D:8C:4B:FF",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 35,
+                "memory": 34,
+                "disk": 74,
+                "vulnerability": 2,
+                "network": 483,
+                "temperature": 50
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn_w8myomqku",
+            "source_device_id": 246,
+            "target_device_id": 247,
+            "type": "fiber",
+            "bandwidth": 33,
+            "startPortId": "dev_jys3cy5ja_port3",
+            "endPortId": "247_port4",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_r4v1bld6a",
+            "source_device_id": 247,
+            "target_device_id": 248,
+            "type": "wifi",
+            "bandwidth": 33,
+            "startPortId": "247_port2",
+            "endPortId": "248_port1",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,350 @@
+{
+    "name": "WeymouthMA",
+    "devices": [
+        {
+            "id": 233,
+            "name": "Router 1",
+            "type": "router",
+            "x": 500.5062889456409,
+            "y": 273.38895817841984,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "35:5A:1E:EE:33:D0",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 60,
+                "memory": 56,
+                "disk": 70,
+                "vulnerability": 11,
+                "network": 513,
+                "temperature": 53
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 234,
+            "name": "Switch 2",
+            "type": "switch",
+            "x": 221.2584888534298,
+            "y": 97.7697242508973,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "FF:EE:26:D8:67:42",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 31,
+                "memory": 5,
+                "disk": 34,
+                "vulnerability": 30,
+                "network": 824,
+                "temperature": 42
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 235,
+            "name": "Server 3",
+            "type": "server",
+            "x": 932.3308775694751,
+            "y": 27.824172299258386,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "48:2E:82:AC:91:9D",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 21,
+                "memory": 27,
+                "disk": 62,
+                "vulnerability": 11,
+                "network": 347,
+                "temperature": 47
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "SSH",
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 249,
+            "name": "Workstation 4",
+            "type": "workstation",
+            "x": 927.0327617984601,
+            "y": 270.0675172385204,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "6A:1E:42:83:89:0A",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 42,
+                "memory": 45,
+                "disk": 23,
+                "vulnerability": 58,
+                "network": 155,
+                "temperature": 52
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "SSH"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 250,
+            "name": "Workstation 5",
+            "type": "workstation",
+            "x": 40.52932886798453,
+            "y": 296.0595147169576,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "D6:A2:8D:61:AE:F2",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 17,
+                "memory": 44,
+                "disk": 54,
+                "vulnerability": 23,
+                "network": 134,
+                "temperature": 58
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "HTTP"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 251,
+            "name": "Workstation 6",
+            "type": "workstation",
+            "x": 414.641699758618,
+            "y": 29.113351218371903,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "B3:DD:9B:D2:20:82",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 99,
+                "memory": 77,
+                "disk": 24,
+                "vulnerability": 62,
+                "network": 371,
+                "temperature": 50
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "SSH"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 252,
+            "name": "Workstation 7",
+            "type": "workstation",
+            "x": 30.218905514434667,
+            "y": 8.083479349692382,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "C8:5A:41:28:70:89",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 24,
+                "memory": 22,
+                "disk": 45,
+                "vulnerability": 44,
+                "network": 88,
+                "temperature": 37
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "HTTP",
+                "SSH",
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 253,
+            "name": "Workstation 8",
+            "type": "workstation",
+            "x": 720.1008166638181,
+            "y": 215.16899785702185,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "9A:79:34:C7:DD:49",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 80,
+                "memory": 50,
+                "disk": 21,
+                "vulnerability": 58,
+                "network": 195,
+                "temperature": 60
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn_isc7vko5l",
+            "source_device_id": 233,
+            "target_device_id": 234,
+            "type": "fiber",
+            "bandwidth": 250,
+            "startPortId": "dev_z8ml8ed6p_port1",
+            "endPortId": "234_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_isc7vko5l",
+            "source_device_id": 233,
+            "target_device_id": 234,
+            "type": "fiber",
+            "bandwidth": 250,
+            "startPortId": "dev_z8ml8ed6p_port1",
+            "endPortId": "234_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_ma74ste6u",
+            "source_device_id": 235,
+            "target_device_id": 234,
+            "type": "ethernet",
+            "bandwidth": 100,
+            "startPortId": "dev_m3k7sgt06_port1",
+            "endPortId": "234_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_ma74ste6u",
+            "source_device_id": 235,
+            "target_device_id": 234,
+            "type": "ethernet",
+            "bandwidth": 100,
+            "startPortId": "dev_m3k7sgt06_port1",
+            "endPortId": "234_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_io6lb7wfr",
+            "source_device_id": 253,
+            "target_device_id": 234,
+            "type": "ethernet",
+            "bandwidth": 55,
+            "startPortId": "253_port1",
+            "endPortId": "234_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_6ttotklsu",
+            "source_device_id": 251,
+            "target_device_id": 234,
+            "type": "ethernet",
+            "bandwidth": 55,
+            "startPortId": "251_port1",
+            "endPortId": "234_port2",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_u2qkdq913",
+            "source_device_id": 252,
+            "target_device_id": 234,
+            "type": "ethernet",
+            "bandwidth": 55,
+            "startPortId": "252_port2",
+            "endPortId": "234_port1",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_nfn1z4d20",
+            "source_device_id": 234,
+            "target_device_id": 250,
+            "type": "vpn",
+            "bandwidth": 55,
+            "startPortId": "234_port1",
+            "endPortId": "250_port3",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ]
+}

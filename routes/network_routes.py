@@ -140,13 +140,13 @@ def associate_pin_json():
     pin_id = data['pin_id']
     json_file = data['json_file']
 
+    # Make sure your database table and logic are correct
     conn = get_db_connection()
     cur = conn.cursor()
-    # Upsert logic: if already associated, update; else insert new record
-    cur.execute('SELECT COUNT(*) FROM pin_json_associations WHERE pin_id=? AND json_filename=?', (pin_id, json_file))
+    cur.execute('SELECT COUNT(*) as cnt FROM pin_json_associations WHERE pin_id=? AND json_filename=?', (pin_id, json_file))
     row = cur.fetchone()
-    if row[0] > 0:
-        # Already exists, just return success
+    if row['cnt'] > 0:
+        # Already associated
         conn.close()
         return jsonify({'message': 'Pin already associated with this JSON file'}), 200
     else:

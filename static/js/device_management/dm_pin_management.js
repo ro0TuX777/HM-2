@@ -1,5 +1,7 @@
 // dm_pin_management.js
+
 import { showError, showSuccess } from './dm_ui.js';
+import { getState, setCurrentLayer } from '../dm_state.js'; // Ensure we have these imports as viewPinHandler uses getState()
 
 // Global variables to store currently associated pin and JSON
 export let currentAssociatedPin = null;
@@ -86,7 +88,7 @@ async function addPinHandler() {
     const network_assoc = UI.inputs.networkAssocInput.value;
 
     if (!pinName || !category || !subcategory || !status_classification || !priority_level || isNaN(lat) || isNaN(lng)) {
-        showError('Please fill in all required pin fields and valid coordinates.');
+        showError('Please fill in all required pin fields and provide valid coordinates.');
         return;
     }
 
@@ -109,7 +111,16 @@ async function addPinHandler() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pinData)
         });
-        const result = await response.json();
+
+        // Attempt to parse JSON safely
+        let result = {};
+        try {
+            result = await response.json();
+        } catch (err) {
+            console.error('Failed to parse JSON response from /api/pins', err);
+            showError('Unexpected response from server.');
+            return;
+        }
 
         if (!response.ok) {
             showError(`Failed to add pin: ${result.error || response.statusText}`);
@@ -128,15 +139,21 @@ async function addPinHandler() {
 async function loadPinsHandler() {
     try {
         const response = await fetch('/api/pins');
-        if (!response.ok) {
-            const result = await response.json();
-            showError(`Failed to load pins: ${result.error || response.statusText}`);
+        let pins;
+        try {
+            pins = await response.json();
+        } catch (err) {
+            console.error('Failed to parse JSON from /api/pins', err);
+            showError('Unexpected response from server.');
             return;
         }
 
-        const pins = await response.json();
-        loadedPins = pins; // store loaded pins globally
+        if (!response.ok) {
+            showError(`Failed to load pins: ${pins.error || response.statusText}`);
+            return;
+        }
 
+        loadedPins = pins;
         UI.selects.pinListSelect.innerHTML = '<option value="" disabled selected>Select a Pin</option>';
         pins.forEach(pin => {
             const op = document.createElement('option');
@@ -165,35 +182,46 @@ function viewPinHandler() {
         return;
     }
 
-    // Attempt to center map on the pin
-    if (window.myLeafletMap) {
-        window.myLeafletMap.setView([pin.latitude, pin.longitude], 13);
-
-        // Parse pin_type if available
-        const pinInfo = pin.pin_type ? pin.pin_type.split(' - ') : [];
-        const [cat, subcat, status_cls, priority_lvl] = pinInfo.length === 4 ? pinInfo : ['', '', '', ''];
-
-        // If we are currently on the Physical layer, add the marker now
-        const state = getState();
-        if (state.currentLayer === 'physical') {
-            addPinMarker(pin.latitude, pin.longitude, pin.name, cat, subcat, status_cls, priority_lvl);
-        } else {
-            // Optionally, tell the user to switch layers or switch automatically
-            // For example:
-            // showError('Switch to Physical layer to see the pin.');
-            // or setCurrentLayer('physical') and rely on EVENTS.LAYER_CHANGED if you prefer
-        }
-
-        showSuccess(`Viewing pin: ${pin.name}`);
-    } else {
-        showError('Map is not initialized. Switch to Physical layer.');
+    if (!pin.latitude || !pin.longitude) {
+        showError('Pin does not have valid coordinates.');
+        return;
     }
+
+    if (!window.myLeafletMap) {
+        showError('Map is not initialized. Switch to the Physical layer first.');
+        return;
+    }
+
+    window.myLeafletMap.setView([pin.latitude, pin.longitude], 13);
+
+    const pinInfo = pin.pin_type ? pin.pin_type.split(' - ') : [];
+    const [cat, subcat, status_cls, priority_lvl] = pinInfo.length === 4 ? pinInfo : ['', '', '', ''];
+
+    // Check current layer to see if we should show the pin marker now
+    const state = getState();
+    if (state.currentLayer === 'physical') {
+        addPinMarker(pin.latitude, pin.longitude, pin.name, cat, subcat, status_cls, priority_lvl);
+    } else {
+        // Optionally, we could switch layers or notify user
+        // showError('Switch to Physical layer to see the pin.');
+        // or setCurrentLayer('physical');
+    }
+
+    showSuccess(`Viewing pin: ${pin.name}`);
 }
 
 async function loadJsonFilesHandler() {
     try {
         const response = await fetch('/api/json_files');
-        const files = await response.json();
+        let files;
+        try {
+            files = await response.json();
+        } catch (err) {
+            console.error('Failed to parse JSON from /api/json_files', err);
+            showError('Unexpected response from server.');
+            return;
+        }
+
         if (!response.ok) {
             showError(`Failed to load JSON files: ${files.error || response.statusText}`);
             return;
@@ -228,11 +256,29 @@ async function associatePinToJsonHandler() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ pin_id: parseInt(pinId), json_file: jsonFile })
         });
-        const result = await response.json();
-        if (!response.ok) {
-            showError(`Failed to associate pin: ${result.error || response.statusText}`);
+
+        // Defensive check for JSON response
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error('Server did not return JSON. Content-Type:', contentType);
+            showError('Unexpected server response. Please try again.');
             return;
         }
+
+        let result;
+        try {
+            result = await response.json();
+        } catch (err) {
+            console.error('Failed to parse JSON from /api/pins/associate_json', err);
+            showError('Unexpected response from server.');
+            return;
+        }
+
+        if (!response.ok) {
+            showError(`Failed to associate pin: ${result.error || result.message || response.statusText}`);
+            return;
+        }
+
         showSuccess('Pin successfully associated with JSON file!');
 
         const pin = loadedPins.find(p => p.id == pinId);
@@ -252,6 +298,7 @@ async function associatePinToJsonHandler() {
         showError('Error associating pin.');
     }
 }
+
 
 setupPinEventListeners();
 loadJsonFilesHandler();

@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, render_template, jsonify
+from flask import Flask, send_from_directory, render_template, jsonify, request
 import os
 import logging
 from database import init_db
@@ -50,7 +50,7 @@ def debug_routes():
         })
     return jsonify(routes)
 
-# After request handler (only one definition)
+# After request handler
 @app.after_request
 def after_request(response):
     # CORS headers
@@ -59,14 +59,12 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     
     # Adjusted CSP:
-    # - Use wildcard for OSM tiles
-    # - Add 'unsafe-eval' only if absolutely required by your libraries
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-eval'; "  # Added unsafe-eval
+        "script-src 'self' 'unsafe-eval'; "  # unsafe-eval added as needed
         "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
         "img-src 'self' data: "
-        "https://a.tile.openstreetmap.org "  # OSM tile servers
+        "https://a.tile.openstreetmap.org "
         "https://b.tile.openstreetmap.org "
         "https://c.tile.openstreetmap.org; "
         "connect-src 'self'; "
@@ -76,11 +74,25 @@ def after_request(response):
         "frame-ancestors 'self'; "
         "base-uri 'self'; "
         "form-action 'self';"
-)
-
+    )
     return response
 
-# Main page routes (only one definition)
+# Error handlers that return JSON if the path starts with /api/
+@app.errorhandler(404)
+def not_found(e):
+    if request.path.startswith('/api'):
+        return jsonify({'error': 'Not Found'}), 404
+    else:
+        return render_template('frontend/404.html.jinja2'), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    if request.path.startswith('/api'):
+        return jsonify({'error': 'Internal Server Error'}), 500
+    else:
+        return render_template('frontend/500.html.jinja2'), 500
+
+# Main page routes
 @app.route('/')
 def home():
     return render_template('frontend/index.html.jinja2', active_page='home')
@@ -107,13 +119,13 @@ def device_management():
 
 @app.route('/visualization')
 def visualization():
-    return render_template('frontend/visualidzation.html.jinja2', active_page='visualization')
+    return render_template('frontend/visualization.html.jinja2', active_page='visualization')
 
 @app.route('/help')
 def help_page():
     return render_template('frontend/help.html.jinja2', active_page='help')
 
-# Static file routes (only one definition)
+# Static file routes
 @app.route('/static/<path:path>')
 def send_static(path):
     return send_from_directory('static', path)

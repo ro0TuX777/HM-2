@@ -1,0 +1,209 @@
+{
+    "name": "Riverside",
+    "devices": [
+        {
+            "id": 254,
+            "name": "Router 1",
+            "type": "router",
+            "x": 426.8438185459566,
+            "y": 319.4012136975531,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "A0:1F:07:ED:0B:3A",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 14,
+                "memory": 41,
+                "disk": 87,
+                "vulnerability": 86,
+                "network": 395,
+                "temperature": 56
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 255,
+            "name": "Server 2",
+            "type": "server",
+            "x": 623.9682752100456,
+            "y": 74.95826507836793,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "41:06:CC:85:23:0E",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 37,
+                "memory": 61,
+                "disk": 82,
+                "vulnerability": 7,
+                "network": 260,
+                "temperature": 56
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "SSH"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 256,
+            "name": "Server 3",
+            "type": "server",
+            "x": 855.7016327965358,
+            "y": 114.69691477771195,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "C2:24:38:B9:09:4B",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 40,
+                "memory": 24,
+                "disk": 52,
+                "vulnerability": 21,
+                "network": 587,
+                "temperature": 37
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "HTTP",
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 257,
+            "name": "Client 4",
+            "type": "client",
+            "x": 209.00870830282753,
+            "y": 33.83455390267557,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "8E:28:75:B9:38:79",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 93,
+                "memory": 43,
+                "disk": 27,
+                "vulnerability": 3,
+                "network": 141,
+                "temperature": 51
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": 258,
+            "name": "Client 5",
+            "type": "client",
+            "x": 178.91640993453316,
+            "y": 181.29287333171516,
+            "ipAddress": "192.168.1.1",
+            "subnetMask": "255.255.255.0",
+            "macAddress": "48:1B:7D:7F:66:45",
+            "gateway": "192.168.1.254",
+            "dnsServer": "8.8.8.8",
+            "metrics": {
+                "cpu": 51,
+                "memory": 55,
+                "disk": 31,
+                "vulnerability": 66,
+                "network": 467,
+                "temperature": 67
+            },
+            "subnet": "192.168.1.0/24",
+            "services": [
+                "DNS"
+            ],
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn_2xhg384nu",
+            "source_device_id": 254,
+            "target_device_id": 255,
+            "type": "fiber",
+            "bandwidth": 55,
+            "startPortId": "254_port3",
+            "endPortId": "255_port1",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_k7dcyacxu",
+            "source_device_id": 254,
+            "target_device_id": 256,
+            "type": "fiber",
+            "bandwidth": 55,
+            "startPortId": "254_port2",
+            "endPortId": "dev_aw5a5e7g3_port1",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_57dbgs1xp",
+            "source_device_id": 257,
+            "target_device_id": 255,
+            "type": "ethernet",
+            "bandwidth": 34,
+            "startPortId": "257_port2",
+            "endPortId": "255_port1",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        },
+        {
+            "id": "conn_im0w6o2ae",
+            "source_device_id": 258,
+            "target_device_id": 255,
+            "type": "ethernet",
+            "bandwidth": 34,
+            "startPortId": "dev_fy34s9oh4_port2",
+            "endPortId": "255_port1",
+            "layer": {
+                "physical": true,
+                "logical": true,
+                "application": true
+            }
+        }
+    ]
+}
